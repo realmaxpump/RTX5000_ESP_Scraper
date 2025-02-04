@@ -1,5 +1,5 @@
-# RTX5000_ESP_Scrapper
-Series 5000 scrapper for Spain. Fu Pedro Sanchez Edition.
+# RTX5000 Scraper Spain
+Series 5000 scraper for Spain. Fu Pedro Sanchez Edition.
 
 Just install required libraries and run. If any available product is found, it will play an alarm.
 
