@@ -18,11 +18,12 @@ def install_and_import(packages):
         except ImportError:
             print(f"📦 Instalando {package_name}...")
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+            __import__(import_name)  # Intentar importar el módulo (falla a veces)
 
 # Instalar e importar librerías
 install_and_import(required_packages)
 
-# Import
+# Hard import
 import re
 import time
 import pygame
@@ -69,16 +70,6 @@ urls_with_terms = {
     "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090?sort_by=price-descending&filter.p.m.custom.grafica=GeForce+GTX+5090": ["Añadir al carrito"],
 }
 
-# Configuración de Selenium con opciones de Chrome
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Ejecutar sin interfaz gráfica
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--log-level=3")
-chrome_options.add_argument("--enable-unsafe-webgl")
-chrome_options.add_argument("--disable-software-rasterizer")
-chrome_options.add_argument("--use-gl=swiftshader")
-
 def log_product_found(url):
     """Log the URL and current local time when a product is found."""
     with open("series_50_disponibles.txt", "a") as file:
@@ -86,6 +77,7 @@ def log_product_found(url):
 
 def current_time():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return current_time
 
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
@@ -140,6 +132,16 @@ def check_availability(url, search_terms):
 #####################################
 ########### Execution ###############
 #####################################
+
+# Configuración de Selenium con opciones de Chrome
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Ejecutar sin interfaz gráfica
+chrome_options.add_argument("--disable-gpu")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--log-level=3")
+chrome_options.add_argument("--enable-unsafe-webgl")
+chrome_options.add_argument("--disable-software-rasterizer")
+chrome_options.add_argument("--use-gl=swiftshader")
 
 # Inicializar WebDriver
 try:
