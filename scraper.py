@@ -69,6 +69,8 @@ urls_with_terms = {
     "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
     "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=price-descending&filter.p.m.custom.grafica=GeForce+GTX+5080": ["Añadir al carrito"],
     "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090?sort_by=price-descending&filter.p.m.custom.grafica=GeForce+GTX+5090": ["Añadir al carrito"],
+    #"https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5080": ["disponible"],
+    #"https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5090": ["disponible"],
 }
 
 def log_product_found(url):
@@ -116,9 +118,12 @@ def check_availability(url, search_terms):
         # Expresión regular para buscar los textos sin distinguir mayúsculas/minúsculas
         found = False
         for term in search_terms:
+            # Revisar si el término está presente en el texto visible
             if re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE):
                 found = True
-                break
+                print(f"Término encontrado: {term}")  # Muestra el término que se encontró
+                break  # Si ya se encuentra un término, se sale del bucle
+
 
         if found:
             try:
@@ -177,7 +182,7 @@ try:
             check_availability(url, search_terms)
 
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
-        time.sleep(5)
+        time.sleep(4)
 
 except KeyboardInterrupt:
     print("\n❌ Búsqueda detenida manualmente.")
