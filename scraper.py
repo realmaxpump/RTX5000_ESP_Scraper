@@ -3,43 +3,6 @@ import sys
 import os
 import datetime
 
-# Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
-required_packages = {
-    "pygame": "pygame",
-    "selenium": "selenium",
-    "webdriver_manager.chrome": "ChromeDriverManager",
-    "bs4": "BeautifulSoup"
-}
-
-# Función para instalar e importar los paquetes
-def install_and_import(packages):
-    for import_name, package_name in packages.items():
-        try:
-            __import__(import_name)  # Intentar importar el módulo
-        except ImportError:
-            print(f"📦 Instalando {package_name}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
-            __import__(import_name)  # Intentar importar el módulo (falla a veces)
-
-# Instalar e importar librerías
-install_and_import(required_packages)
-
-# Hard import
-import re
-import time
-import pygame
-from datetime import datetime
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
-
-print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
-
 # Diccionario de URLs y términos
 urls_with_terms = {
     "https://www.appinformatica.com/componentes-de-ordenador/tarjetas-graficas?initialMap=c,c&initialQuery=componentes-de-ordenador/tarjetas-graficas&map=category-1,category-2,procesador-grafico&query=/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5080&searchState": ["Añadir"],
@@ -82,6 +45,19 @@ def current_time():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return current_time
 
+def print_separator():
+    print('=' * TERM_SIZE.columns)
+
+# Función para instalar e importar los paquetes
+def install_and_import(packages):
+    for import_name, package_name in packages.items():
+        try:
+            __import__(import_name)  # Intentar importar el módulo
+        except ImportError:
+            print(f"📦 Instalando {package_name}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+            __import__(import_name)  # Intentar importar el módulo (falla a veces)
+
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
@@ -121,10 +97,8 @@ def check_availability(url, search_terms):
             # Revisar si el término está presente en el texto visible
             if re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE):
                 found = True
-                print(f"Término encontrado: {term}")  # Muestra el término que se encontró
+                #print(f"Término encontrado: {term}")  # Muestra el término que se encontró
                 break  # Si ya se encuentra un término, se sale del bucle
-
-
         if found:
             try:
                 money.play()
@@ -132,7 +106,9 @@ def check_availability(url, search_terms):
                 print(f"❌ No se ha podido reproducir la alarma: {e}")
 
             log_product_found(url)
-            print(f"💸💸💸💸 Producto disponible en: {url} 💸💸💸💸")
+            print_separator()
+            print(f"💸💸💸💸 PRODUCTO DISPONIBLE en: {url} 💸💸💸💸")
+            print_separator()
         else:
             print(f"❌ Producto NO disponible en: {url}")
 
@@ -142,6 +118,41 @@ def check_availability(url, search_terms):
 #####################################
 ########### Execution ###############
 #####################################
+
+# Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
+required_packages = {
+    "pygame": "pygame",
+    "selenium": "selenium",
+    "webdriver_manager.chrome": "ChromeDriverManager",
+    "bs4": "BeautifulSoup"
+}
+
+# Instalar e importar librerías
+install_and_import(required_packages)
+
+# Hard import
+import re
+import time
+import pygame
+from datetime import datetime
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+
+print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
+
+# Constants
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+RESET = '\033[0m'  # Para restaurar el color predeterminado
+TERM_SIZE = os.get_terminal_size()
+SOUND_FILE = 'src/sounds/found.mp3'
 
 # Configuración de Selenium con opciones de Chrome
 chrome_options = Options()
@@ -161,16 +172,12 @@ except Exception as e:
     print(f"❌ Error al iniciar WebDriver: {e}")
     exit()
 
+# Inicializar Alarma
 pygame.init()
-
-# Path to the sound file
-sound_file = 'src/sounds/found.mp3'
-
-# Check if the sound file exists
-if not os.path.isfile(sound_file):
-    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {sound_file}")
+if not os.path.isfile(SOUND_FILE):
+    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {SOUND_FILE}")
 else:
-    money = pygame.mixer.Sound(sound_file)
+    money = pygame.mixer.Sound(SOUND_FILE)
     print(f"✅ 🚨Alarma🚨 preparada")
 
 print(f"\n⚙️ Iniciando búsqueda de disponibilidad... ⚙️\n")
@@ -180,7 +187,6 @@ try:
     while True:
         for url, search_terms in urls_with_terms.items():
             check_availability(url, search_terms)
-
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
         time.sleep(4)
 
