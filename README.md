@@ -9,5 +9,6 @@ Just run, dependencies will be automatically installed. If any available product
 
 
 [CHANGELOG]
+
 05/02/2023 - 1.3 - Added antibot counter measures. Nvidia marketplace is now scraped correctly.
 
