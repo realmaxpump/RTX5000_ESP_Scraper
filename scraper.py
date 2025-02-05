@@ -57,7 +57,7 @@ def log_product_found(url):
     with open("series_50_disponibles.txt", "a") as file:
         file.write(f"URL: {url} - Found at {current_time}\n")
 
-def check_availability_selenium(url, search_terms):
+def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
         driver.get(url)  # Intentar cargar la página con timeout de 15 segundos
@@ -87,7 +87,7 @@ def check_availability_selenium(url, search_terms):
         # Utilizamos BeautifulSoup para limpiar y extraer solo el texto visible
         soup = BeautifulSoup(page_content, 'html.parser')
 
-        # Obtener todo el texto visible (sin etiquetas de estilo, script, etc.)
+        # Obtener el texto visible (sin etiquetas de estilo, script, etc.)
         visible_text = ' '.join(soup.stripped_strings)
 
         # Expresión regular para buscar los textos sin distinguir mayúsculas/minúsculas
@@ -111,8 +111,6 @@ def check_availability_selenium(url, search_terms):
 ########### Execution ###############
 #####################################
 
-clear = lambda: os.system('cls') #on Windows System
-
 # Inicializar WebDriver
 try:
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
@@ -130,11 +128,10 @@ print(f"\n⚙️ Iniciando búsqueda de disponibilidad... ⚙️\n")
 try:
     while True:
         for url, search_terms in urls_with_terms.items():
-            check_availability_selenium(url, search_terms)
+            check_availability(url, search_terms)
 
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
         time.sleep(5)
-        #clear()
 
 except KeyboardInterrupt:
     print("\n❌ Búsqueda detenida manualmente.")
