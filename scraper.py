@@ -1,3 +1,28 @@
+import subprocess
+import sys
+import datetime
+
+# Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
+required_packages = {
+    "pygame": "pygame",
+    "selenium": "selenium",
+    "webdriver_manager.chrome": "ChromeDriverManager",
+    "bs4": "BeautifulSoup"
+}
+
+# Función para instalar e importar los paquetes
+def install_and_import(packages):
+    for import_name, package_name in packages.items():
+        try:
+            __import__(import_name)  # Intentar importar el módulo
+        except ImportError:
+            print(f"📦 Instalando {package_name}...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+
+# Instalar e importar librerías
+install_and_import(required_packages)
+
+# Import
 import re
 import time
 import pygame
@@ -10,6 +35,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
+
+print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
 
 # Diccionario de URLs y términos
 urls_with_terms = {
@@ -47,14 +74,18 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")  # Ejecutar sin interfaz gráfica
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--log-level=3")  # Reducir logs innecesarios
-
+chrome_options.add_argument("--log-level=3")
+chrome_options.add_argument("--enable-unsafe-webgl")
+chrome_options.add_argument("--disable-software-rasterizer")
+chrome_options.add_argument("--use-gl=swiftshader")
 
 def log_product_found(url):
     """Log the URL and current local time when a product is found."""
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("series_50_disponibles.txt", "a") as file:
-        file.write(f"URL: {url} - Found at {current_time}\n")
+        file.write(f"URL: {url} - Found at {current_time()}\n")
+
+def current_time():
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
@@ -104,7 +135,7 @@ def check_availability(url, search_terms):
             print(f"❌ Producto NO disponible en: {url}")
 
     except Exception as e:
-        print(f"⚠️ Error al procesar {url}: {e}")
+        print(f"⚠️ Error al procesar {url}")
 
 #####################################
 ########### Execution ###############
