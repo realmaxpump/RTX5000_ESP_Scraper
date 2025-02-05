@@ -14,7 +14,7 @@ urls_with_terms = {
     #"https://www.coolmod.com/tarjetas-graficas/serie-rtx-5090/serie-rtx-5080/": ["Añadir"],
     "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126519,126520.html": ["DISPONIBLE"],
     "https://lifeinformatica.com/nvidia-geforce-rtx-serie-50/": ["Añadir al carrito"],
-    "https://marketplace.nvidia.com/es-es/consumer/graphics-cards/?locale=es-es&page=1&limit=12&gpu=RTX%205080,RTX%205090&gpu_filter=RTX%205090~8,RTX%205080~2,RTX%204070%20Ti%20SUPER~6,RTX%204070%20Ti~4,RTX%204060%20Ti~3,RTX%204070%20SUPER~4,RTX%204070~4,RTX%204060~22,RTX%203080~1,RTX%203070%20Ti~1,RTX%203060%20Ti~1,RTX%203060~6,GTX%201650~1": ["Comprar Ahora"],
+    "https://marketplace.nvidia.com/es-es/consumer/graphics-cards/?locale=es-es&page=1&limit=12&gpu=RTX%205080,RTX%205090&manufacturer=NVIDIA&manufacturer_filter=NVIDIA~2,MSI~1": ["Comprar Ahora"],
     "https://www.neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000": ["Añadir al carrito"],
     "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5080-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
     "https://www.pccomponentes.com/tarjeta-grafica-asus-prime-geforce-rtx-5080-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
@@ -27,7 +27,8 @@ urls_with_terms = {
     "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5090-suprim-soc-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
     "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
     "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    #"https://tienda.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090": ["Comprar"],
+    #"https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090": ["Comprar"],
+    #"https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090&page=2": ["Comprar"],
     "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?page=2&q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
     "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
     "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=price-descending&filter.p.m.custom.grafica=GeForce+GTX+5080": ["Añadir al carrito"],
@@ -58,10 +59,13 @@ def install_and_import(packages):
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
             __import__(import_name)  # Intentar importar el módulo (falla a veces)
 
+#def test_availability(url, search_terms):
+#    check_availability(url, test_terms)
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
         driver.get(url)  # Intentar cargar la página con timeout de 15 segundos
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
@@ -70,20 +74,22 @@ def check_availability(url, search_terms):
         page_content = ''
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
-            page_content = page_element.get_attribute("innerHTML")
         except:
-            # Si no hay <main>, extraer contenido de <body> excluyendo header, footer, scripts y metadatos
-            body_element = driver.find_element(By.TAG_NAME, "body")
-            body_html = body_element.get_attribute("innerHTML")
+            # Si no hay <main>, extraer contenido de <body>
+            page_element = driver.find_element(By.TAG_NAME, "body")
 
-            # Eliminar todas las etiquetas no visibles (scripts, estilos, metadatos, etc.)
-            for tag in ["header", "footer", "script", "style", "meta"]:
-                elements = driver.find_elements(By.TAG_NAME, tag)
-                for element in elements:
-                    body_html = body_html.replace(element.get_attribute("outerHTML"), "")
+        # Eliminar elementos no deseados directamente del DOM
+        tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
+        for tag in tags_to_remove:
+            driver.execute_script(f"""
+                var elements = document.getElementsByTagName('{tag}');
+                while (elements[0]) {{
+                    elements[0].parentNode.removeChild(elements[0]);
+                }}
+            """)
 
-            # Solo mantendremos el texto visible en el HTML
-            page_content = body_html
+        # Obtener el contenido filtrado
+        page_content = page_element.get_attribute("innerHTML")
 
         # Utilizamos BeautifulSoup para limpiar y extraer solo el texto visible
         soup = BeautifulSoup(page_content, 'html.parser')
@@ -113,7 +119,7 @@ def check_availability(url, search_terms):
             print(f"❌ Producto NO disponible en: {url}")
 
     except Exception as e:
-        print(f"⚠️ Error al procesar {url}")
+        print(f"⚠️ Error al procesar {url}: {e}")
 
 #####################################
 ########### Execution ###############
@@ -123,6 +129,7 @@ def check_availability(url, search_terms):
 required_packages = {
     "pygame": "pygame",
     "selenium": "selenium",
+    "selenium_stealth" : "stealth",
     "webdriver_manager.chrome": "ChromeDriverManager",
     "bs4": "BeautifulSoup"
 }
@@ -142,6 +149,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_stealth import stealth
 from bs4 import BeautifulSoup
 
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
@@ -154,9 +162,13 @@ RESET = '\033[0m'  # Para restaurar el color predeterminado
 TERM_SIZE = os.get_terminal_size()
 SOUND_FILE = 'src/sounds/found.mp3'
 
-# Configuración de Selenium con opciones de Chrome
+# Configure Chrome options. Obfuscate identity to bypass antibot measures
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # Ejecutar sin interfaz gráfica
+chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+chrome_options.add_experimental_option("useAutomationExtension", False)
+chrome_options.add_argument("--headless")  #
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--log-level=3")
@@ -171,6 +183,16 @@ try:
 except Exception as e:
     print(f"❌ Error al iniciar WebDriver: {e}")
     exit()
+
+# Use selenium-stealth to further hide automation
+stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
 
 # Inicializar Alarma
 pygame.init()
