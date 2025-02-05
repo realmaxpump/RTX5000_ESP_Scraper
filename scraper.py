@@ -166,7 +166,7 @@ if not os.path.isfile(sound_file):
     print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {sound_file}")
 else:
     money = pygame.mixer.Sound(sound_file)
-    print(f"✅ 🚨Alarma🚨 preparada: {sound_file}")
+    print(f"✅ 🚨Alarma🚨 preparada")
 
 print(f"\n⚙️ Iniciando búsqueda de disponibilidad... ⚙️\n")
 
