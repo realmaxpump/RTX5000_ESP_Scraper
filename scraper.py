@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import os
 import datetime
 
 # Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
@@ -120,7 +121,11 @@ def check_availability(url, search_terms):
                 break
 
         if found:
-            money.play()
+            try:
+                money.play()
+            except Exception as e:
+                print(f"❌ No se ha podido reproducir la alarma: {e}")
+
             log_product_found(url)
             print(f"💸💸💸💸 Producto disponible en: {url} 💸💸💸💸")
         else:
@@ -152,7 +157,16 @@ except Exception as e:
     exit()
 
 pygame.init()
-money = pygame.mixer.Sound('src/sounds/found.mp3')
+
+# Path to the sound file
+sound_file = 'src/sounds/found.mp3'
+
+# Check if the sound file exists
+if not os.path.isfile(sound_file):
+    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {sound_file}")
+else:
+    money = pygame.mixer.Sound(sound_file)
+    print(f"✅ 🚨Alarma🚨 preparada: {sound_file}")
 
 print(f"\n⚙️ Iniciando búsqueda de disponibilidad... ⚙️\n")
 
