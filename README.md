@@ -9,6 +9,10 @@ Just run, dependencies will be automatically installed. If any available product
 
 
 [CHANGELOG]
-
+07/02/2023 - 1.4:
+    - New Menu.
+    - Don't give a fu about CloudFlare.
+    - General refactoring and fixes.
+    
 05/02/2023 - 1.3 - Added antibot counter measures. Nvidia marketplace is now scraped correctly.
 
