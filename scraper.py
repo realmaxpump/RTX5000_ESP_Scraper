@@ -9,14 +9,14 @@ import json
 import re
 from datetime import datetime
 
-# Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
-required_packages = [
-    "setuptools",
-    "pygame",
-    "selenium",
-    "beautifulsoup4",
-    "undetected_chromedriver"
-]
+
+required_packages = {
+    "setuptools": "setuptools",
+    "pygame": "pygame",
+    "selenium": "selenium",
+    "beautifulsoup4": "bs4",
+    "undetected_chromedriver": "undetected_chromedriver"
+}
 
 # Constants
 RED = '\033[31m'
@@ -46,16 +46,19 @@ def print_separator(width=100):
 def install_packages(packages):
     """Instala paquetes si no están disponibles."""
     import sys
-    print(f"📦 Reconstituyendo distutils...")
+
     try:
-        import setuptools
+        import setuptools  # Verifica si setuptools ya está disponible
     except ImportError:
         print("📦 Reconstituyendo distutils y setuptools...")
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "setuptools"])
-    for package in packages:
+            [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "setuptools"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+
+    for package, module in packages.items():
         try:
-            __import__(package)
+            __import__(module)
         except ImportError:
             print(f"📦 Instalando {package}...")
             subprocess.run([sys.executable, "-m", "pip", "install", package],
