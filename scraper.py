@@ -1,42 +1,36 @@
-import subprocess
-import sys
 import os
-import datetime
+# Disable messages
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1"
 
-# Diccionario de URLs y términos
-urls_with_terms = {
-    "https://www.appinformatica.com/componentes-de-ordenador/tarjetas-graficas?initialMap=c,c&initialQuery=componentes-de-ordenador/tarjetas-graficas&map=category-1,category-2,procesador-grafico&query=/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5080&searchState": ["Añadir"],
-    "https://www.asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5080+Series-GeForce+RTX+5090+Series": ["Añadir a la cesta"],
-    "https://www.beep.es/componentes-de-ordenador/tarjetas-graficas?initialMap=c,c&initialQuery=componentes-de-ordenador/tarjetas-graficas&map=category-1,category-2,procesador-grafico&query=/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5080": ["AÑADIR"],
-    "https://www.beep.es/componentes-de-ordenador/tarjetas-graficas?initialMap=c,c&initialQuery=componentes-de-ordenador/tarjetas-graficas&map=category-1,category-2,procesador-grafico&query=/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5090": ["AÑADIR"],
-    "https://www.caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5080": ["Pocas unidades"],
-    "https://www.caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5090": ["Pocas unidades"],
-    #"https://www.coolmod.com/tarjetas-graficas/serie-rtx-5090/serie-rtx-5080/": ["Añadir"],
-    "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126519,126520.html": ["DISPONIBLE"],
-    "https://lifeinformatica.com/nvidia-geforce-rtx-serie-50/": ["Añadir al carrito"],
-    "https://marketplace.nvidia.com/es-es/consumer/graphics-cards/?locale=es-es&page=1&limit=12&gpu=RTX%205080,RTX%205090&manufacturer=NVIDIA&manufacturer_filter=NVIDIA~2,MSI~1": ["Comprar Ahora"],
-    "https://www.neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5080-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-prime-geforce-rtx-5080-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-vanguard-soc-launch-edition-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-gaming-trio-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-gaming-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-windforce-oc-sff-16gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-argb-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5090-suprim-soc-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-32gb-gddr7-reflex-2-rtx-ai-dlss4": ["Añadir al carrito"],
-    #"https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090": ["Comprar"],
-    #"https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090&page=2": ["Comprar"],
-    "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?page=2&q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
-    "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
-    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=manual&filter.p.m.custom.serie=SUPRIM&filter.p.m.custom.serie=GAMING&filter.p.m.custom.serie=VENTUS&filter.p.m.custom.serie=VANGUARD": ["Añadir al carrito"],
-    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090?sort_by=best-selling&filter.p.m.custom.serie=SUPRIM&filter.p.m.custom.serie=GAMING&filter.p.m.custom.serie=VENTUS&filter.p.m.custom.serie=VANGUARD": ["Añadir al carrito"],
-    #"https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5080": ["disponible"],
-    #"https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5090": ["disponible"],
-}
+import subprocess
+import platform
+import time
+import json
+import re
+from datetime import datetime
 
+# Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
+required_packages = [
+    "setuptools",
+    "pygame",
+    "selenium",
+    "beautifulsoup4",
+    "undetected_chromedriver"
+]
+
+# Constants
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+RESET = '\033[0m'  # Para restaurar el color predeterminado
+SOUND_FILE = 'src/sounds/found.mp3'
+
+# Rutas de los diccionarios
+TARGETS_FILE = "src/data/targets.json"
+TEST_TARGETS_FILE = "src/data/test_targets.json"
+
+
+# Functions
 def log_product_found(url):
     """Log the URL and current local time when a product is found."""
     with open("series_50_disponibles.txt", "a") as file:
@@ -46,21 +40,100 @@ def current_time():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return current_time
 
-def print_separator():
-    print('=' * TERM_SIZE.columns)
+def print_separator(width=100):
+    print('\n' + '='.center(width, '=') + '\n')
 
-# Función para instalar e importar los paquetes
-def install_and_import(packages):
-    for import_name, package_name in packages.items():
+def install_packages(packages):
+    """Instala paquetes si no están disponibles."""
+    import sys
+    print(f"📦 Reconstituyendo distutils...")
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "setuptools"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,  # Oculta salida
+    )
+    for package in packages:
         try:
-            __import__(import_name)  # Intentar importar el módulo
+            __import__(package)
         except ImportError:
-            print(f"📦 Instalando {package_name}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
-            __import__(import_name)  # Intentar importar el módulo (falla a veces)
+            print(f"📦 Instalando {package}...")
+            subprocess.run([sys.executable, "-m", "pip", "install", package],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-#def test_availability(url, search_terms):
-#    check_availability(url, test_terms)
+def show_menu():
+    print_separator()
+    print("🎯 Selecciona una opción:")
+    print("1️🔹 Empezar Búsqueda")
+    print("2️🔹 Modo Test de URLs")
+    print("3️🔹 Salir")
+    print(f"\n\tScript desarrollado por: {RED}RealMaxPump {RESET}")
+    print("\thttps://github.com/realmaxpump")
+    print_separator()
+
+def load_urls_from_file(file):
+    try:
+        with open(file, "r", encoding="utf-8") as file:
+            return json.load(file)  # Carga el archivo como un diccionario JSON
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"❌ Error al cargar el archivo {file}: {e}")
+        return {}
+
+def get_chrome_version():
+    """Obtiene la versión instalada de Chrome en Windows, Linux o macOS."""
+    try:
+        system = platform.system().lower()  # Obtener el sistema operativo
+
+        if system == "windows":
+            # Comando para obtener la versión de Chrome en Windows
+            result = subprocess.run(
+                ["reg", "query", "HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon", "/v", "version"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if result.returncode == 0:
+                # Extraer la versión de la salida del comando
+                version = result.stdout.strip().split()[-1]
+                return int(version.split(".")[0])  # Devolver solo el número principal (por ejemplo, 133)
+            else:
+                print("❌ No se pudo obtener la versión de Chrome en Windows.")
+                return None
+
+        elif system == "linux":
+            # Comando para obtener la versión de Chrome en Linux
+            result = subprocess.run(
+                ["google-chrome", "--version"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if result.returncode == 0:
+                # Extraer la versión de la salida del comando
+                version = re.search(r"\d+\.\d+\.\d+", result.stdout.strip())
+                if version:
+                    return int(version.group().split(".")[0])  # Devolver solo el número principal
+            else:
+                print("❌ No se pudo obtener la versión de Chrome en Linux.")
+                return None
+
+        elif system == "darwin":  # macOS
+            # Comando para obtener la versión de Chrome en macOS
+            result = subprocess.run(
+                ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--version"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if result.returncode == 0:
+                # Extraer la versión de la salida del comando
+                version = re.search(r"\d+\.\d+\.\d+", result.stdout.strip())
+                if version:
+                    return int(version.group().split(".")[0])  # Devolver solo el número principal
+            else:
+                print("❌ No se pudo obtener la versión de Chrome en macOS.")
+                return None
+
+        else:
+            print(f"❌ Sistema operativo no compatible: {system}")
+            return None
+
+    except Exception as e:
+        print(f"❌ Error al obtener la versión de Chrome: {e}")
+        return None
+
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
@@ -68,10 +141,8 @@ def check_availability(url, search_terms):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
 
-        # Intentar extraer solo el contenido dentro de <main> o elementos visibles
-        page_content = ''
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
         except:
@@ -104,7 +175,7 @@ def check_availability(url, search_terms):
             if re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE):
                 found = True
                 #print(f"Término encontrado: {term}")  # Muestra el término que se encontró
-                break  # Si ya se encuentra un término, se sale del bucle
+                break
         if found:
             try:
                 money.play()
@@ -113,62 +184,39 @@ def check_availability(url, search_terms):
 
             log_product_found(url)
             print_separator()
-            print(f"💸💸💸💸 PRODUCTO DISPONIBLE en: {url} 💸💸💸💸")
+            print(f"💸💸💸💸 PRODUCTO DISPONIBLE  💸💸💸💸")
+            print(f"\n{url}")
             print_separator()
         else:
-            print(f"❌ Producto NO disponible en: {url}")
+            short_url = url[:70] + "..." if len(url) > 70 else url
+            print(f"❌ Producto NO disponible en: {short_url}")
 
     except Exception as e:
         print(f"⚠️ Error al procesar {url}: {e}")
+
 
 #####################################
 ########### Execution ###############
 #####################################
 
-# Lista de dependencias necesarias (mapeo de nombres para instalación e importación)
-required_packages = {
-    "pygame": "pygame",
-    "selenium": "selenium",
-    "selenium_stealth" : "stealth",
-    "webdriver_manager.chrome": "ChromeDriverManager",
-    "bs4": "BeautifulSoup"
-}
-
 # Instalar e importar librerías
-install_and_import(required_packages)
+install_packages(required_packages)
 
-# Hard import
-import re
-import time
 import pygame
-from datetime import datetime
-from selenium import webdriver
+from bs4 import BeautifulSoup
+import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium_stealth import stealth
-from bs4 import BeautifulSoup
+
 
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
 
-# Constants
-RED = '\033[31m'
-GREEN = '\033[32m'
-YELLOW = '\033[33m'
-RESET = '\033[0m'  # Para restaurar el color predeterminado
-TERM_SIZE = os.get_terminal_size()
-SOUND_FILE = 'src/sounds/found.mp3'
-
 # Configure Chrome options. Obfuscate identity to bypass antibot measures
-chrome_options = Options()
+chrome_options = uc.ChromeOptions()
+chrome_options.add_argument("--headless=new")  # Modo completamente oculto
 chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-chrome_options.add_experimental_option("useAutomationExtension", False)
-chrome_options.add_argument("--headless")  #
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--log-level=3")
@@ -176,23 +224,27 @@ chrome_options.add_argument("--enable-unsafe-webgl")
 chrome_options.add_argument("--disable-software-rasterizer")
 chrome_options.add_argument("--use-gl=swiftshader")
 
-# Inicializar WebDriver
-try:
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-    driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
-except Exception as e:
-    print(f"❌ Error al iniciar WebDriver: {e}")
-    exit()
 
-# Use selenium-stealth to further hide automation
-stealth(driver,
-        languages=["en-US", "en"],
-        vendor="Google Inc.",
-        platform="Win32",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
-        )
+# Detectar la versión de Chrome instalada
+chrome_version = get_chrome_version()
+
+# Inicializar WebDriver
+if chrome_version:
+    print(f"✅ Versión de Chrome detectada: {chrome_version}")
+    try:
+        driver = uc.Chrome(version_main=chrome_version, use_subprocess=True, options=chrome_options)
+        driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
+    except Exception as e:
+        print(f"❌ Error al iniciar WebDriver: {e}")
+        exit()
+else:
+    print(f"❌ Ejecutando driver de manera genérica")
+    try:
+        driver = uc.Chrome(use_subprocess=True, options=chrome_options)
+        driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
+    except Exception as e:
+        print(f"❌ Error al iniciar WebDriver: {e}")
+        exit()
 
 # Inicializar Alarma
 pygame.init()
@@ -202,7 +254,23 @@ else:
     money = pygame.mixer.Sound(SOUND_FILE)
     print(f"✅ 🚨Alarma🚨 preparada")
 
-print(f"\n⚙️ Iniciando búsqueda de disponibilidad... ⚙️\n")
+while True:
+    show_menu()
+    choice = input("🔹 Opción (1/2/3): ").strip()
+
+    if choice == "1":
+        print("\n🚀 Iniciando búsqueda de disponibilidad...")
+        urls_with_terms = load_urls_from_file(TARGETS_FILE)
+        break
+    elif choice == "2":
+        print("\n🛠️ Iniciando Modo Test con URLs de prueba...")
+        urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
+        break
+    elif choice == "3":
+        print("👋 ¡Espero que haya habido suerte!")
+        sys.exit()
+    else:
+        print("❌ Opción inválida. Inténtalo de nuevo.")
 
 # Loop infinito para revisar cada página periódicamente
 try:
@@ -210,7 +278,7 @@ try:
         for url, search_terms in urls_with_terms.items():
             check_availability(url, search_terms)
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
-        time.sleep(4)
+        time.sleep(2)
 
 except KeyboardInterrupt:
     print("\n❌ Búsqueda detenida manualmente.")
