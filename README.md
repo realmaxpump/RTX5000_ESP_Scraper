@@ -15,5 +15,7 @@ Just run, dependencies will be automatically installed. If any available product
     - Don't give a fu about CloudFlare.
     - General refactoring and fixes.
     
-05/02/2023 - 1.3 - Added antibot counter measures. Nvidia marketplace is now scraped correctly.
+05/02/2023 - 1.3:
+
+    - Added antibot counter measures. Nvidia marketplace is now scraped correctly.
 
