@@ -31,8 +31,8 @@ urls_with_terms = {
     #"https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090&page=2": ["Comprar"],
     "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?page=2&q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
     "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5080-RTX+5090": ["Añadir al carrito"],
-    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=price-descending&filter.p.m.custom.grafica=GeForce+GTX+5080": ["Añadir al carrito"],
-    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090?sort_by=price-descending&filter.p.m.custom.grafica=GeForce+GTX+5090": ["Añadir al carrito"],
+    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=manual&filter.p.m.custom.serie=SUPRIM&filter.p.m.custom.serie=GAMING&filter.p.m.custom.serie=VENTUS&filter.p.m.custom.serie=VANGUARD": ["Añadir al carrito"],
+    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090?sort_by=best-selling&filter.p.m.custom.serie=SUPRIM&filter.p.m.custom.serie=GAMING&filter.p.m.custom.serie=VENTUS&filter.p.m.custom.serie=VANGUARD": ["Añadir al carrito"],
     #"https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5080": ["disponible"],
     #"https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5090": ["disponible"],
 }
