@@ -47,10 +47,12 @@ def install_packages(packages):
     """Instala paquetes si no están disponibles."""
     import sys
     print(f"📦 Reconstituyendo distutils...")
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "setuptools"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,  # Oculta salida
-    )
+    try:
+        import setuptools
+    except ImportError:
+        print("📦 Reconstituyendo distutils y setuptools...")
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "setuptools"])
     for package in packages:
         try:
             __import__(package)
@@ -141,7 +143,7 @@ def check_availability(url, search_terms):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
 
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
