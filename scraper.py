@@ -171,8 +171,8 @@ def start_webDriver(mode):
             print("⚠️ No se pudo detectar la versión de Chrome. Intentando iniciar WebDriver de manera genérica...")
             driver = uc.Chrome(use_subprocess=True, options=chrome_options)
 
-        driver.set_page_load_timeout(7)  # Timeout de carga de página
-        driver.set_script_timeout(7)
+        driver.set_page_load_timeout(3)  # Timeout de carga de página
+        driver.set_script_timeout(3)
 
         print("✅ WebDriver inicializado correctamente.")
         print_separator()
@@ -200,8 +200,7 @@ def check_availability(url, search_terms):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
-
+        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
         except:
@@ -252,8 +251,8 @@ def check_availability(url, search_terms):
     except Exception as e:
         error_message = str(e).lower()  # Convertir el error a minúsculas para detección flexible
         if ("invalid session id" in error_message
-                or "read timeout" in error_message
-                or "timed out receiving message from renderer" in error_message):
+                or "read timeout" in error_message):
+#               or "timed out receiving message from renderer" in error_message):
             print(f"⚠️ Error detectado: {error_message}")
             restart_webDriver()
         else:
@@ -321,7 +320,7 @@ try:
         for url, search_terms in urls_with_terms.items():
             check_availability(url, search_terms)
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
-        time.sleep(2)
+        time.sleep(1)
 
 except KeyboardInterrupt:
     print("\n❌ Búsqueda detenida manualmente.")
