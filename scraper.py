@@ -147,31 +147,51 @@ def get_chrome_version():
         print(f"❌ Error al obtener la versión de Chrome: {e}")
         return None
 
-def start_webDriver():
+def start_webDriver(mode):
     global driver
-    if chrome_version:
-        print(f"✅ Versión de Chrome detectada: {chrome_version}")
-        try:
+    try:
+        print("🚀 Iniciando WebDriver...")
+
+        # Configure Chrome options. Obfuscate identity to bypass variou antibot measures
+        chrome_options = uc.ChromeOptions()
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--log-level=3")
+        chrome_options.add_argument("--enable-unsafe-webgl")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument("--use-gl=swiftshader")
+        if mode == 1: chrome_options.add_argument("--headless=new")
+
+        if chrome_version:
+            print(f"✅ Versión de Chrome detectada: {chrome_version}")
             driver = uc.Chrome(version_main=chrome_version, use_subprocess=True, options=chrome_options)
-            driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
-            print(f"✅ WebDriver inicializado")
-            print_separator()
-        except Exception as e:
-            print(f"❌ Error al iniciar WebDriver: {e}")
-            exit()
-    else:
-        print(f"❌ Ejecutando WebDriver de manera genérica")
-        try:
+        else:
+            print("⚠️ No se pudo detectar la versión de Chrome. Intentando iniciar WebDriver de manera genérica...")
             driver = uc.Chrome(use_subprocess=True, options=chrome_options)
-            driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
-            print_separator()
-        except Exception as e:
-            print(f"❌ Error al iniciar WebDriver: {e}")
-            exit()
+
+        driver.set_page_load_timeout(7)  # Timeout de carga de página
+        driver.set_script_timeout(7)
+
+        print("✅ WebDriver inicializado correctamente.")
+        print_separator()
+
+    except Exception as e:
+        print(f"❌ Error al iniciar WebDriver: {e}")
+        sys.exit(1)  # Detener el script si no se puede iniciar el WebDriver
 
 def restart_webDriver():
-    driver.quit()
-    start_webDriver()
+        """Reinicia el WebDriver correctamente, asegurando que se cierre antes de volver a iniciar."""
+        global driver
+        print("🔄 Reiniciando WebDriver...")
+        try:
+            driver.quit()
+            time.sleep(3)
+        except Exception as e:
+            print(f"⚠️ Aviso al cerrar WebDriver: {e}")
+            exit()
+        start_webDriver(mode)
 
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
@@ -180,7 +200,7 @@ def check_availability(url, search_terms):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
+        WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
 
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
@@ -231,12 +251,10 @@ def check_availability(url, search_terms):
             print(f"❌ Producto NO disponible en: {short_url}")
     except Exception as e:
         error_message = str(e).lower()  # Convertir el error a minúsculas para detección flexible
-
         if ("invalid session id" in error_message
                 or "read timeout" in error_message
                 or "timed out receiving message from renderer" in error_message):
             print(f"⚠️ Error detectado: {error_message}")
-            print("🔄 Reiniciando WebDriver...")
             restart_webDriver()
         else:
             print(f"⚠️ Error inesperado en {url}: {e}")
@@ -266,31 +284,22 @@ else:
     money = pygame.mixer.Sound(SOUND_FILE)
     print(f"✅ 🚨Alarma🚨 preparada")
 
-# Configure Chrome options. Obfuscate identity to bypass variou antibot measures
-chrome_options = uc.ChromeOptions()
-chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--log-level=3")
-chrome_options.add_argument("--enable-unsafe-webgl")
-chrome_options.add_argument("--disable-software-rasterizer")
-chrome_options.add_argument("--use-gl=swiftshader")
-
 while True:
     show_menu()
     choice = input("🔹 Opción (1/2/3/4): ").strip()
 
     if choice == "1":
+        mode = 1
         print("\n🚀 Iniciando búsqueda de disponibilidad silencioso...")
         urls_with_terms = load_urls_from_file(TARGETS_FILE)
-        chrome_options.add_argument("--headless=new")
         break
     elif choice == "2":
+        mode = 2
         print("\n🛠️ Iniciando búsqueda de disponibilidad gráfico...")
         urls_with_terms = load_urls_from_file(TARGETS_FILE)
         break
     elif choice == "3":
+        mode = 3
         print("\n🛠️ Iniciando Modo Test con URLs de prueba...")
         urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
         break
@@ -304,7 +313,7 @@ while True:
 chrome_version = get_chrome_version()
 
 # Inicializar WebDriver
-start_webDriver()
+start_webDriver(mode)
 
 # Loop infinito para revisar cada página periódicamente
 try:
@@ -316,4 +325,7 @@ try:
 
 except KeyboardInterrupt:
     print("\n❌ Búsqueda detenida manualmente.")
-    driver.quit()
+    try:
+        driver.quit()
+    except Exception as e:
+        print(f"❌ Error al cerrar WebDriver: {e}")
