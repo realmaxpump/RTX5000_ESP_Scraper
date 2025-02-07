@@ -30,8 +30,6 @@ SOUND_FILE = 'src/sounds/found.mp3'
 TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
-
-
 # Functions
 def log_product_found(url):
     """Log the URL and current local time when a product is found."""
