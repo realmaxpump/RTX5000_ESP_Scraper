@@ -61,15 +61,21 @@ def install_packages(packages):
             __import__(module)
         except ImportError:
             print(f"📦 Instalando {package}...")
-            subprocess.run([sys.executable, "-m", "pip", "install", package],
+            subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", package],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                __import__(module)  # Intentar importar de nuevo tras la instalación
+            except ImportError:
+                print(f"❌ No se pudo instalar correctamente {package}. Reintente manualmente.")
+                exit(1)  # Detener ejecución si falla
 
 def show_menu():
     print_separator()
     print("🎯 Selecciona una opción:")
-    print("1️🔹 Empezar Búsqueda")
-    print("2️🔹 Modo Test de URLs")
-    print("3️🔹 Salir")
+    print("1️🔹 Empezar Búsqueda en modo silencioso (recomendado)")
+    print("2️🔹 Empezar Búsqueda en modo gráfico")
+    print("3️🔹 Modo Test de URLs")
+    print("4️🔹 Salir")
     print(f"\n\tScript desarrollado por: {RED}RealMaxPump {RESET}")
     print("\thttps://github.com/realmaxpump")
     print_separator()
@@ -146,7 +152,7 @@ def check_availability(url, search_terms):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
 
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
@@ -209,17 +215,23 @@ install_packages(required_packages)
 
 import pygame
 from bs4 import BeautifulSoup
-import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import undetected_chromedriver as uc
 
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
 
-# Configure Chrome options. Obfuscate identity to bypass antibot measures
+# Inicializar Alarma
+pygame.init()
+if not os.path.isfile(SOUND_FILE):
+    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {SOUND_FILE}")
+else:
+    money = pygame.mixer.Sound(SOUND_FILE)
+    print(f"✅ 🚨Alarma🚨 preparada")
+
+# Configure Chrome options. Obfuscate identity to bypass variou antibot measures
 chrome_options = uc.ChromeOptions()
-chrome_options.add_argument("--headless=new")  # Modo completamente oculto
 chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 chrome_options.add_argument("--disable-gpu")
@@ -229,6 +241,28 @@ chrome_options.add_argument("--enable-unsafe-webgl")
 chrome_options.add_argument("--disable-software-rasterizer")
 chrome_options.add_argument("--use-gl=swiftshader")
 
+while True:
+    show_menu()
+    choice = input("🔹 Opción (1/2/3/4): ").strip()
+
+    if choice == "1":
+        print("\n🚀 Iniciando búsqueda de disponibilidad silencioso...")
+        urls_with_terms = load_urls_from_file(TARGETS_FILE)
+        chrome_options.add_argument("--headless=new")
+        break
+    elif choice == "2":
+        print("\n🛠️ Iniciando búsqueda de disponibilidad gráfico...")
+        urls_with_terms = load_urls_from_file(TARGETS_FILE)
+        break
+    elif choice == "3":
+        print("\n🛠️ Iniciando Modo Test con URLs de prueba...")
+        urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
+        break
+    elif choice == "4":
+        print("👋 ¡Espero que haya habido suerte!")
+        sys.exit()
+    else:
+        print("❌ Opción inválida. Inténtalo de nuevo.")
 
 # Detectar la versión de Chrome instalada
 chrome_version = get_chrome_version()
@@ -239,43 +273,20 @@ if chrome_version:
     try:
         driver = uc.Chrome(version_main=chrome_version, use_subprocess=True, options=chrome_options)
         driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
+        print(f"✅ WebDriver inicializado")
+        print_separator()
     except Exception as e:
         print(f"❌ Error al iniciar WebDriver: {e}")
         exit()
 else:
-    print(f"❌ Ejecutando driver de manera genérica")
+    print(f"❌ Ejecutando WebDriver de manera genérica")
     try:
         driver = uc.Chrome(use_subprocess=True, options=chrome_options)
         driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
+        print_separator()
     except Exception as e:
         print(f"❌ Error al iniciar WebDriver: {e}")
         exit()
-
-# Inicializar Alarma
-pygame.init()
-if not os.path.isfile(SOUND_FILE):
-    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {SOUND_FILE}")
-else:
-    money = pygame.mixer.Sound(SOUND_FILE)
-    print(f"✅ 🚨Alarma🚨 preparada")
-
-while True:
-    show_menu()
-    choice = input("🔹 Opción (1/2/3): ").strip()
-
-    if choice == "1":
-        print("\n🚀 Iniciando búsqueda de disponibilidad...")
-        urls_with_terms = load_urls_from_file(TARGETS_FILE)
-        break
-    elif choice == "2":
-        print("\n🛠️ Iniciando Modo Test con URLs de prueba...")
-        urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
-        break
-    elif choice == "3":
-        print("👋 ¡Espero que haya habido suerte!")
-        sys.exit()
-    else:
-        print("❌ Opción inválida. Inténtalo de nuevo.")
 
 # Loop infinito para revisar cada página periódicamente
 try:
