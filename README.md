@@ -12,6 +12,10 @@ Just run, dependencies will be automatically installed. If any available product
 
 07/02/2023 - 1.4.1:
     
+    - Fixed various forced exceptions (naughty boys).
+    
+07/02/2023 - 1.4.1:
+    
     - Add graphical search mode.
     - Fix dependencies installation function.
     - Remove redundancies.
