@@ -2,12 +2,13 @@ import os
 # Disable messages
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1"
 
+import sys
 import subprocess
 import platform
 import time
+from datetime import datetime
 import json
 import re
-from datetime import datetime
 
 
 required_packages = {
@@ -17,6 +18,7 @@ required_packages = {
     "beautifulsoup4": "bs4",
     "undetected_chromedriver": "undetected_chromedriver"
 }
+
 
 # Constants
 RED = '\033[31m'
@@ -28,6 +30,7 @@ SOUND_FILE = 'src/sounds/found.mp3'
 # Rutas de los diccionarios
 TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
+
 
 
 # Functions
@@ -45,7 +48,6 @@ def print_separator(width=100):
 
 def install_packages(packages):
     """Instala paquetes si no están disponibles."""
-    import sys
 
     try:
         import setuptools  # Verifica si setuptools ya está disponible
@@ -145,6 +147,32 @@ def get_chrome_version():
         print(f"❌ Error al obtener la versión de Chrome: {e}")
         return None
 
+def start_webDriver():
+    global driver
+    if chrome_version:
+        print(f"✅ Versión de Chrome detectada: {chrome_version}")
+        try:
+            driver = uc.Chrome(version_main=chrome_version, use_subprocess=True, options=chrome_options)
+            driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
+            print(f"✅ WebDriver inicializado")
+            print_separator()
+        except Exception as e:
+            print(f"❌ Error al iniciar WebDriver: {e}")
+            exit()
+    else:
+        print(f"❌ Ejecutando WebDriver de manera genérica")
+        try:
+            driver = uc.Chrome(use_subprocess=True, options=chrome_options)
+            driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
+            print_separator()
+        except Exception as e:
+            print(f"❌ Error al iniciar WebDriver: {e}")
+            exit()
+
+def restart_webDriver():
+    driver.quit()
+    start_webDriver()
+
 def check_availability(url, search_terms):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
@@ -201,9 +229,15 @@ def check_availability(url, search_terms):
         else:
             short_url = url[:70] + "..." if len(url) > 70 else url
             print(f"❌ Producto NO disponible en: {short_url}")
-
     except Exception as e:
-        print(f"⚠️ Error al procesar {url}: {e}")
+        error_message = str(e).lower()  # Convertir el error a minúsculas para detección flexible
+
+        if "invalid session id" in error_message or "read timeout" in error_message:
+            print(f"⚠️ Error detectado: {error_message}")
+            print("🔄 Reiniciando WebDriver...")
+            restart_webDriver()
+        else:
+            print(f"⚠️ Error inesperado en {url}: {e}")
 
 
 #####################################
@@ -268,25 +302,7 @@ while True:
 chrome_version = get_chrome_version()
 
 # Inicializar WebDriver
-if chrome_version:
-    print(f"✅ Versión de Chrome detectada: {chrome_version}")
-    try:
-        driver = uc.Chrome(version_main=chrome_version, use_subprocess=True, options=chrome_options)
-        driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
-        print(f"✅ WebDriver inicializado")
-        print_separator()
-    except Exception as e:
-        print(f"❌ Error al iniciar WebDriver: {e}")
-        exit()
-else:
-    print(f"❌ Ejecutando WebDriver de manera genérica")
-    try:
-        driver = uc.Chrome(use_subprocess=True, options=chrome_options)
-        driver.set_page_load_timeout(15)  # Timeout de carga de página: 15 segundos
-        print_separator()
-    except Exception as e:
-        print(f"❌ Error al iniciar WebDriver: {e}")
-        exit()
+start_webDriver()
 
 # Loop infinito para revisar cada página periódicamente
 try:
