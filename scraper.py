@@ -1,7 +1,4 @@
 import os
-# Disable messages
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1"
-
 import sys
 import subprocess
 import platform
@@ -16,7 +13,8 @@ required_packages = {
     "pygame": "pygame",
     "selenium": "selenium",
     "beautifulsoup4": "bs4",
-    "undetected_chromedriver": "undetected_chromedriver"
+    "undetected_chromedriver": "undetected_chromedriver",
+    "winsound":"winsound"
 }
 
 # Constants
@@ -29,6 +27,10 @@ SOUND_FILE = 'src/sounds/found.mp3'
 # Rutas de los diccionarios
 TARGETS_FILE = "src/data/filtered_targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
+
+# Winsound
+ALARM_FREQ = 2500  # Set Frequency To 2500 Hertz
+ALARM_DURATION = 50  # Set Duration To 1000 ms == 1 second
 
 # Functions
 def log_product_found(url):
@@ -233,7 +235,7 @@ def check_availability(url, search_terms):
                 break
         if found:
             try:
-                money.play()
+                winsound.Beep(ALARM_FREQ, ALARM_FREQ)
             except Exception as e:
                 print(f"❌ No se ha podido reproducir la alarma: {e}")
 
@@ -269,6 +271,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import undetected_chromedriver as uc
+import winsound
 
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
 
