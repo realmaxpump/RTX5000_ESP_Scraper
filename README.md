@@ -9,6 +9,12 @@ Just run, dependencies will be automatically installed. If any available product
 
 
 [CHANGELOG]
+
+07/02/2023 - 1.4.1:
+
+    - Fix dependencies installation function.
+    - Remove redundancies.
+
 07/02/2023 - 1.4:
 
     - New Menu.
