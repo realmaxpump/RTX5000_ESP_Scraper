@@ -10,7 +10,7 @@ Just run, dependencies will be automatically installed. If any available product
 
 [CHANGELOG]
 
-07/02/2023 - 1.4.1:
+07/02/2023 - 1.4.2
     
     - Fixed various forced exceptions (naughty boys).
     
