@@ -27,7 +27,7 @@ RESET = '\033[0m'  # Para restaurar el color predeterminado
 SOUND_FILE = 'src/sounds/found.mp3'
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/targets.json"
+TARGETS_FILE = "src/data/filtered_targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Functions
