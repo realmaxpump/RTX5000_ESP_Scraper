@@ -232,7 +232,9 @@ def check_availability(url, search_terms):
     except Exception as e:
         error_message = str(e).lower()  # Convertir el error a minúsculas para detección flexible
 
-        if "invalid session id" in error_message or "read timeout" in error_message:
+        if ("invalid session id" in error_message
+                or "read timeout" in error_message
+                or "timed out receiving message from renderer" in error_message):
             print(f"⚠️ Error detectado: {error_message}")
             print("🔄 Reiniciando WebDriver...")
             restart_webDriver()
