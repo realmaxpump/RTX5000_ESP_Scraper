@@ -31,7 +31,7 @@ TELEGRAM_TOKEN = ""
 TELEGRAM_CHAT_ID = ""
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/filtered_targets.json"
+TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
