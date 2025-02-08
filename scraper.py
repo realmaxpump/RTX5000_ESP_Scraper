@@ -25,7 +25,7 @@ RESET = '\033[0m'  # Para restaurar el color predeterminado
 SOUND_FILE = 'src/sounds/found.mp3'
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/filtered_targets.json"
+TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Winsound
@@ -265,7 +265,6 @@ def check_availability(url, search_terms):
 # Instalar e importar librerías
 install_packages(required_packages)
 
-import pygame
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -276,12 +275,10 @@ import winsound
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
 
 # Inicializar Alarma
-pygame.init()
-if not os.path.isfile(SOUND_FILE):
-    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {SOUND_FILE}")
-else:
-    money = pygame.mixer.Sound(SOUND_FILE)
+if ALARM_FREQ & ALARM_DURATION:
     print(f"✅ 🚨Alarma🚨 preparada")
+else:
+    print(f"❌ No se ha podido inicializar la alarma")
 
 while True:
     show_menu()
