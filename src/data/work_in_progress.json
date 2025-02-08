@@ -8,5 +8,9 @@
     "method": "request",
     "terms": ["disponible"],
     "selector": "span.tvlowqty"
+  },
+  "https://lifeinformatica.com/nvidia-geforce-rtx-serie-50/": {
+    "method": "brute",
+    "terms": ["Tarjetas"]
   }
 }
