@@ -83,46 +83,50 @@
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://wipoid.com/componentes/tarjetas-graficas/nvidia-rtx-5080": {
+    "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5080": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080": {
+    "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5090": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090": {
+    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=manual&filter.p.m.custom.grafica=GeForce+RTX+5080": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.xtremmedia.com/tarjetas-graficas?serie=gf-rtx-5000&chip-grafico=gf-rtx5080": {
-        "method": "request",
-        "terms": ["disponible"],
-        "selector": ""
+    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5090?sort_by=best-selling&filter.p.m.custom.grafica=GeForce+RTX+5090": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"]
     },
     "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080": {
         "method": "request",
         "terms": ["Comprar"],
-        "selector": ""
+        "selector": "div.product-add-cart"
     },
     "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5090": {
         "method": "request",
         "terms": ["Comprar"],
-        "selector": ""
+        "selector": "div.product-add-cart"
+    },
+    "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5080": {
+        "method": "request",
+        "terms": ["Añadir"],
+        "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
     },
     "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5090": {
         "method": "request",
         "terms": ["Añadir"],
-        "selector": ""
+        "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
     },
     "https://www.aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5080": {
         "method": "request",
-        "terms": ["Entrega"],
-        "selector": ""
+        "terms": ["Carro"],
+        "selector": "button.add-to-cart:not(.disabled)"
     },
     "https://www.aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5090": {
         "method": "request",
-        "terms": ["Entrega"],
-        "selector": ""
+        "terms": ["Carro"],
+        "selector": "button.add-to-cart:not(.disabled)"
     }
 }

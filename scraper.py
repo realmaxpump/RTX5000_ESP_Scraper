@@ -1,19 +1,19 @@
-import os
 import sys
 import subprocess
 import platform
+import requests
 import time
 from datetime import datetime
 import json
 import re
-
 
 required_packages = {
     "setuptools": "setuptools",
     "selenium": "selenium",
     "beautifulsoup4": "bs4",
     "undetected_chromedriver": "undetected_chromedriver",
-    "winsound":"winsound"
+    "winsound": "winsound",
+    "brotli": "brotli"
 }
 
 # Constants
@@ -28,12 +28,19 @@ TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Requests config
 REQUEST_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Accept-Language": "es-ES,es;q=0.9"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
+    "Accept-Language": "en-US,en;q=0.8,es;q=0.6",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Connection": "keep-alive",
+    "Referer": "https://www.google.com/",
+    "DNT": "1",  # Do Not Track activado
+    "Upgrade-Insecure-Requests": "1"
 }
+
 # Winsound
 ALARM_FREQ = 2500  # Set Frequency To 2500 Hertz
-ALARM_DURATION = 50  # Set Duration To 1000 ms == 1 second
+ALARM_DURATION = 200  # Set Duration To 1000 ms == 1 second
 
 # Functions
 def log_product_found(url):
@@ -184,16 +191,16 @@ def webdriver_start(mode):
         sys.exit(1)  # Detener el script si no se puede iniciar el WebDriver
 
 def webdriver_restart():
-        """Reinicia el WebDriver correctamente, asegurando que se cierre antes de volver a iniciar."""
-        global driver
-        print("🔄 Reiniciando WebDriver...")
-        try:
-            driver.quit()
-            time.sleep(3)
-        except Exception as e:
-            print(f"⚠️ Aviso al cerrar WebDriver: {e}")
-            exit()
-        webdriver_start(mode)
+    """Reinicia el WebDriver correctamente, asegurando que se cierre antes de volver a iniciar."""
+    global driver
+    print("🔄 Reiniciando WebDriver...")
+    try:
+        driver.quit()
+        time.sleep(3)
+    except Exception as e:
+        print(f"⚠️ Aviso al cerrar WebDriver: {e}")
+        exit()
+    webdriver_start(mode)
 
 def scrape_brute(url):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
@@ -238,30 +245,50 @@ def scrape_brute(url):
             return None
 
 def scrape_with_requests(url, selector=""):
-    """Scrapea páginas usando requests y BeautifulSoup."""
+    """Scrapea páginas usando requests y BeautifulSoup con manejo de compresión seguro."""
     try:
         response = requests.get(url, headers=REQUEST_HEADERS, timeout=7)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
+
+        # Detectar si la respuesta está comprimida
+        content_encoding = response.headers.get("Content-Encoding", "").lower()
+        raw_content = response.content
+
+        # Si el contenido empieza con '<', es HTML y no necesita descomprimir
+        if raw_content[:2] == b'<!':
+            html = raw_content.decode("utf-8", errors="ignore")
+        elif content_encoding == "gzip":
             try:
-                if not selector:
-                    print(f"⚠️ No se proporcionó un selector para {url}")
-                    return None
-
-                soup_selection = soup.select(selector)
-
-                if soup_selection:
-                    return soup_selection
-                else:
-                    print(f"⚠️ El selector `{selector}` no encontró elementos en {url}")
-                    return None
-
-            except Exception as e:
-                print(f"⚠️ Error al seleccionar elementos con `{selector}` en {url}: {e}")
-                return None
+                print(f"📌 Respuesta comprimida con GZIP en {url}. Descomprimiendo...")
+                html = gzip.decompress(raw_content).decode("utf-8", errors="ignore")
+            except OSError:
+                print(f"❌ Error: El contenido de {url} no es realmente un archivo GZIP.")
+                html = raw_content.decode("utf-8", errors="ignore")  # Leer sin descomprimir
+        elif content_encoding == "br":
+            try:
+                print(f"📌 Respuesta comprimida con Brotli en {url}. Descomprimiendo...")
+                html = brotli.decompress(raw_content).decode("utf-8", errors="ignore")
+            except brotli.error:
+                print(f"❌ Error: El contenido de {url} no es realmente Brotli.")
+                html = raw_content.decode("utf-8", errors="ignore")  # Leer sin descomprimir
         else:
-            print(f"⚠️ Error {response.status_code} en {url}")
+            html = raw_content.decode("utf-8", errors="ignore")  # Si no está comprimido, usarlo tal cual
+
+        # Verificar si la respuesta es válida
+        if "<html" not in html:
+            print(f"❌ La respuesta de {url} no contiene HTML válido.")
             return None
+        soup = BeautifulSoup(html, "html.parser")
+
+        # Aplicar selector si está definido
+        if selector:
+            elements = soup.select(selector)
+            if elements:
+                # Si hay varios elementos, extraer el texto de cada uno
+                return BeautifulSoup("\n".join(str(el) for el in elements), "html.parser")  # Retorna un nuevo `soup`
+            else:
+                print(f"⚠️ El selector `{selector}` no encontró elementos en {url}")
+                return " "
+        return soup  # Retornar el contenido si no hay selector específico
     except requests.exceptions.RequestException as e:
         print(f"⚠️ No se pudo acceder a {url}: {e}")
         return None
@@ -296,7 +323,6 @@ def check_availability(url, search_terms, method, selector=""):
 
     except Exception as e:
         print(f"⚠️ Error en {url}: {e}")
-        webdriver_restart()
 
 
 
