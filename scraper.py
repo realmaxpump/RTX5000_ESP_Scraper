@@ -28,6 +28,11 @@ SOUND_FILE = 'src/sounds/found.mp3'
 TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
+# Requests config
+REQUEST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Accept-Language": "es-ES,es;q=0.9"
+}
 # Winsound
 ALARM_FREQ = 2500  # Set Frequency To 2500 Hertz
 ALARM_DURATION = 50  # Set Duration To 1000 ms == 1 second
@@ -146,7 +151,7 @@ def get_chrome_version():
         print(f"❌ Error al obtener la versión de Chrome: {e}")
         return None
 
-def start_webDriver(mode):
+def webdriver_start(mode):
     global driver
     try:
         print("🚀 Iniciando WebDriver...")
@@ -180,7 +185,7 @@ def start_webDriver(mode):
         print(f"❌ Error al iniciar WebDriver: {e}")
         sys.exit(1)  # Detener el script si no se puede iniciar el WebDriver
 
-def restart_webDriver():
+def webdriver_restart():
         """Reinicia el WebDriver correctamente, asegurando que se cierre antes de volver a iniciar."""
         global driver
         print("🔄 Reiniciando WebDriver...")
@@ -190,9 +195,9 @@ def restart_webDriver():
         except Exception as e:
             print(f"⚠️ Aviso al cerrar WebDriver: {e}")
             exit()
-        start_webDriver(mode)
+        webdriver_start(mode)
 
-def check_availability(url, search_terms):
+def scrape_brute(url):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
         driver.get(url)  # Intentar cargar la página con timeout de 15 segundos
@@ -210,52 +215,91 @@ def check_availability(url, search_terms):
         tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
         for tag in tags_to_remove:
             driver.execute_script(f"""
-                var elements = document.getElementsByTagName('{tag}');
-                while (elements[0]) {{
-                    elements[0].parentNode.removeChild(elements[0]);
-                }}
-            """)
+                    var elements = document.getElementsByTagName('{tag}');
+                    while (elements[0]) {{
+                        elements[0].parentNode.removeChild(elements[0]);
+                    }}
+                """)
 
         # Obtener el contenido filtrado
         page_content = page_element.get_attribute("innerHTML")
 
         # Utilizamos BeautifulSoup para limpiar y extraer solo el texto visible
-        soup = BeautifulSoup(page_content, 'html.parser')
+        return BeautifulSoup(page_content, 'html.parser')
 
-        # Obtener el texto visible (sin etiquetas de estilo, script, etc.)
-        visible_text = ' '.join(soup.stripped_strings)
+    except Exception as e:
+        error_message = str(e).lower()
+        if ("invalid session id" in error_message
+                or "read timeout" in error_message):
+            #               or "timed out receiving message from renderer" in error_message):
+            print(f"⚠️ Error detectado: {error_message}")
+            webdriver_restart()
+            return None
+        else:
+            print(f"⚠️ Error inesperado en {url}: {e}")
+            return None
 
-        # Expresión regular para buscar los textos sin distinguir mayúsculas/minúsculas
-        found = False
-        for term in search_terms:
-            # Revisar si el término está presente en el texto visible
-            if re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE):
-                found = True
-                #print(f"Término encontrado: {term}")  # Muestra el término que se encontró
-                break
-        if found:
+def scrape_with_requests(url, selector=""):
+    """Scrapea páginas usando requests y BeautifulSoup."""
+    try:
+        response = requests.get(url, headers=REQUEST_HEADERS, timeout=7)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, "html.parser")
             try:
-                winsound.Beep(ALARM_FREQ, ALARM_FREQ)
-            except Exception as e:
-                print(f"❌ No se ha podido reproducir la alarma: {e}")
+                if not selector:
+                    print(f"⚠️ No se proporcionó un selector para {url}")
+                    return None
 
+                soup_selection = soup.select(selector)
+
+                if soup_selection:
+                    return soup_selection
+                else:
+                    print(f"⚠️ El selector `{selector}` no encontró elementos en {url}")
+                    return None
+
+            except Exception as e:
+                print(f"⚠️ Error al seleccionar elementos con `{selector}` en {url}: {e}")
+                return None
+        else:
+            print(f"⚠️ Error {response.status_code} en {url}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ No se pudo acceder a {url}: {e}")
+        return None
+
+def check_availability(url, search_terms, method, selector=""):
+    """Verifica si un producto está disponible según el method y términos configurados."""
+    global driver
+    try:
+
+        if method == "request":
+            soup = scrape_with_requests(url, selector)
+        elif method == "brute":
+            soup = scrape_brute(url)
+        else:
+            print(f"⚠️ Método desconocido para {url}. Saltando...")
+            return
+
+        if not soup:
+            print(f"⚠️ Scraping falló {url}. Saltando...")
+            return  # Si el scraping falló, pasamos al siguiente
+
+        visible_text = ' '.join(soup.stripped_strings)
+        found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
+
+        if found:
+            print(f"💸 Producto DISPONIBLE en: {url}")
             log_product_found(url)
-            print_separator()
-            print(f"💸💸💸💸 PRODUCTO DISPONIBLE  💸💸💸💸")
-            print(f"\n{url}")
-            print_separator()
+            winsound.Beep(ALARM_FREQ, ALARM_DURATION)
         else:
             short_url = url[:70] + "..." if len(url) > 70 else url
             print(f"❌ Producto NO disponible en: {short_url}")
-    except Exception as e:
-        error_message = str(e).lower()  # Convertir el error a minúsculas para detección flexible
-        if ("invalid session id" in error_message
-                or "read timeout" in error_message):
-#               or "timed out receiving message from renderer" in error_message):
-            print(f"⚠️ Error detectado: {error_message}")
-            restart_webDriver()
-        else:
-            print(f"⚠️ Error inesperado en {url}: {e}")
+
+    except (TimeoutException, WebDriverException) as e:
+        print(f"⚠️ Error en {url}: {e}")
+        webdriver_restart()
+
 
 
 #####################################
@@ -275,8 +319,8 @@ import winsound
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
 
 # Inicializar Alarma
-if ALARM_FREQ & ALARM_DURATION:
-    print(f"✅ 🚨Alarma🚨 preparada")
+if ALARM_FREQ and ALARM_DURATION:
+    print("✅ 🚨Alarma🚨 preparada")
 else:
     print(f"❌ No se ha podido inicializar la alarma")
 
@@ -309,13 +353,13 @@ while True:
 chrome_version = get_chrome_version()
 
 # Inicializar WebDriver
-start_webDriver(mode)
+webdriver_start(mode)
 
 # Loop infinito para revisar cada página periódicamente
 try:
     while True:
-        for url, search_terms in urls_with_terms.items():
-            check_availability(url, search_terms)
+        for url, config in urls_with_terms.items():
+            check_availability(url, config["terms"], config["method"], config.get("selector", ""))
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
         time.sleep(1)
 
