@@ -10,7 +10,6 @@ import re
 
 required_packages = {
     "setuptools": "setuptools",
-    "pygame": "pygame",
     "selenium": "selenium",
     "beautifulsoup4": "bs4",
     "undetected_chromedriver": "undetected_chromedriver",
@@ -22,7 +21,6 @@ RED = '\033[31m'
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'  # Para restaurar el color predeterminado
-SOUND_FILE = 'src/sounds/found.mp3'
 
 # Rutas de los diccionarios
 TARGETS_FILE = "src/data/targets.json"
