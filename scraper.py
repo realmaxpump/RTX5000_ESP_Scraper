@@ -31,11 +31,11 @@ TELEGRAM_TOKEN = ""
 TELEGRAM_CHAT_ID = ""
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/targets.json"
+TARGETS_FILE = "src/data/filtered_targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 4
+TIMEOUT_THRESHOLD = 5
 
 # Tiempo entre búsquedas
 WAIT_TIME = 1
@@ -169,12 +169,12 @@ def webdriver_start(mode):
         chrome_options.add_argument(f"--user-agent={random_user_agent}")
         # Chrome Options
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-        chrome_options.add_argument("--disable-gpu")
+        #chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--log-level=3")
         chrome_options.add_argument("--enable-unsafe-webgl")
         chrome_options.add_argument("--disable-software-rasterizer")
-        chrome_options.add_argument("--use-gl=swiftshader")
+        #chrome_options.add_argument("--use-gl=swiftshader")
         if mode == 1:
             chrome_options.add_argument("--headless=new")
 
