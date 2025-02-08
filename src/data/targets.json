@@ -47,39 +47,51 @@
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5080": {
+    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5080-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-prime-geforce-rtx-5080": {
+    "https://www.pccomponentes.com/tarjeta-grafica-asus-prime-geforce-rtx-5080-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-vanguard-soc-launch-edition": {
+    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-vanguard-soc-launch-edition-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-gaming-trio-oc": {
+    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-gaming-trio-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-gaming-oc": {
+    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-gaming-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-windforce-oc-sff": {
+    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-windforce-oc-sff-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-argb-overclocked-triple-fan": {
+    "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5090-oc": {
+    "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5090-suprim-soc": {
+    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5090-suprim-soc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"]
+    },
+    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"]
+    },
+    "https://www.pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"]
+    },
+    "https://www.pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-argb-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"]
     },

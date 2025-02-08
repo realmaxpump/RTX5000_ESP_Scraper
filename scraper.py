@@ -15,16 +15,31 @@ required_packages = {
     "winsound": "winsound",
     "brotli": "brotli"
 }
+#####################################
+########### Config ###############
+#####################################
+
+# Winsound
+ALARM_FREQ = 2000  # Set Frequency To 2500 Hertz
+ALARM_DURATION = 800  # Set Duration To 1000 ms == 1 second
+
+# Telegram
+USE_TELEGRAM = False
+TELEGRAM_TOKEN = ""
+TELEGRAM_CHAT_ID = ""
+
+# Rutas de los diccionarios
+TARGETS_FILE = "src/data/targets.json"
+TEST_TARGETS_FILE = "src/data/test_targets.json"
+
+# Tiempo máximo de espera por página
+TIMEOUT_THRESHOLD = 3
 
 # Constants
 RED = '\033[31m'
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'  # Para restaurar el color predeterminado
-
-# Rutas de los diccionarios
-TARGETS_FILE = "src/data/targets.json"
-TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Requests config
 REQUEST_HEADERS = {
@@ -37,10 +52,6 @@ REQUEST_HEADERS = {
     "DNT": "1",  # Do Not Track activado
     "Upgrade-Insecure-Requests": "1"
 }
-
-# Winsound
-ALARM_FREQ = 2500  # Set Frequency To 2500 Hertz
-ALARM_DURATION = 200  # Set Duration To 1000 ms == 1 second
 
 # Functions
 def log_product_found(url):
@@ -57,7 +68,6 @@ def print_separator(width=100):
 
 def install_packages(packages):
     """Instala paquetes si no están disponibles."""
-
     try:
         import setuptools  # Verifica si setuptools ya está disponible
     except ImportError:
@@ -180,8 +190,8 @@ def webdriver_start(mode):
             print("⚠️ No se pudo detectar la versión de Chrome. Intentando iniciar WebDriver de manera genérica...")
             driver = uc.Chrome(use_subprocess=True, options=chrome_options)
 
-        driver.set_page_load_timeout(3)  # Timeout de carga de página
-        driver.set_script_timeout(3)
+        driver.set_page_load_timeout(TIMEOUT_THRESHOLD)  # Timeout de carga de página
+        driver.set_script_timeout(TIMEOUT_THRESHOLD)
 
         print("✅ WebDriver inicializado correctamente.")
         print_separator()
@@ -209,7 +219,7 @@ def scrape_brute(url):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
+        WebDriverWait(driver, TIMEOUT_THRESHOLD).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
         except:
@@ -286,8 +296,8 @@ def scrape_with_requests(url, selector=""):
                 # Si hay varios elementos, extraer el texto de cada uno
                 return BeautifulSoup("\n".join(str(el) for el in elements), "html.parser")  # Retorna un nuevo `soup`
             else:
-                print(f"⚠️ El selector `{selector}` no encontró elementos en {url}")
-                return " "
+                # Si el producto no está disponible, no encuentra el selector en muchos casos
+                return None
         return soup  # Retornar el contenido si no hay selector específico
     except requests.exceptions.RequestException as e:
         print(f"⚠️ No se pudo acceder a {url}: {e}")
@@ -297,7 +307,6 @@ def check_availability(url, search_terms, method, selector=""):
     """Verifica si un producto está disponible según el method y términos configurados."""
     global driver
     try:
-
         if method == "request":
             soup = scrape_with_requests(url, selector)
         elif method == "brute":
@@ -305,26 +314,40 @@ def check_availability(url, search_terms, method, selector=""):
         else:
             print(f"⚠️ Método desconocido para {url}. Saltando...")
             return
+        if soup:
+            visible_text = ' '.join(soup.stripped_strings)
+            found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
 
-        if not soup:
-            print(f"⚠️ Scraping falló {url}. Saltando...")
-            return  # Si el scraping falló, pasamos al siguiente
-
-        visible_text = ' '.join(soup.stripped_strings)
-        found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
-
-        if found:
-            print(f"💸 Producto DISPONIBLE en: {url}")
-            log_product_found(url)
-            winsound.Beep(ALARM_FREQ, ALARM_DURATION)
-        else:
+            if found:
+                print(f"💸 Producto DISPONIBLE en: {url}")
+                log_product_found(url)
+                winsound.Beep(ALARM_FREQ, ALARM_DURATION)
+                if USE_TELEGRAM:
+                    try:
+                        send_message_telegram(f"💸💸💸💸 STOCK DISPONIBLE  💸💸💸💸\n\n{url}")
+                        print(f"✅ Notificado")
+                    except Exception as e:
+                        print(f"❌ Error al enviar mensaje a Telegram: {e}")
+                    print_separator()
+            else:
+                short_url = url[:70] + "..." if len(url) > 70 else url
+                print(f"❌ Producto NO disponible en: {short_url}")
+        elif method == "request":
             short_url = url[:70] + "..." if len(url) > 70 else url
             print(f"❌ Producto NO disponible en: {short_url}")
-
+        else:
+            return  # Si el scraping falló, pasamos al siguiente
     except Exception as e:
-        print(f"⚠️ Error en {url}: {e}")
+        print(f"⚠️ Error en {url}")
+        #print(f"⚠️ Error en {url}: {e}")
 
-
+def send_message_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    params = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message
+    }
+    requests.get(url, params=params)
 
 #####################################
 ########### Execution ###############
@@ -340,13 +363,22 @@ from selenium.webdriver.support import expected_conditions as EC
 import undetected_chromedriver as uc
 import winsound
 
-print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
+print("✅ Todas las dependencias han sido instaladas e importadas correctamente")
 
 # Inicializar Alarma
 if ALARM_FREQ and ALARM_DURATION:
     print("✅ 🚨Alarma🚨 preparada")
 else:
     print(f"❌ No se ha podido inicializar la alarma")
+
+#Inicializar Telegram
+if USE_TELEGRAM:
+    if not TELEGRAM_CHAT_ID:
+        print("❌ 🤖Bot🤖 de Telegram no configurado")
+    else:
+        print(f"✅ 🤖Bot🤖 de Telegram iniciado correctamente. Chat ID encontrado: {TELEGRAM_CHAT_ID}")
+else:
+    print(f"❌ 🤖Bot🤖 de Telegram deshabilitado")
 
 while True:
     show_menu()
