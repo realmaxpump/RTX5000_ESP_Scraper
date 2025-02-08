@@ -2,6 +2,7 @@ import sys
 import subprocess
 import platform
 import requests
+import random
 import time
 from datetime import datetime
 import json
@@ -10,10 +11,11 @@ import re
 required_packages = {
     "setuptools": "setuptools",
     "selenium": "selenium",
-    "beautifulsoup4": "bs4",
     "undetected_chromedriver": "undetected_chromedriver",
-    "winsound": "winsound",
-    "brotli": "brotli"
+    "fake-useragent": "fake_useragent",
+    "beautifulsoup4": "bs4",
+    "brotli": "brotli",
+    "winsound": "winsound"
 }
 #####################################
 ########### Config ###############
@@ -29,29 +31,20 @@ TELEGRAM_TOKEN = ""
 TELEGRAM_CHAT_ID = ""
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/targets.json"
+TARGETS_FILE = "src/data/filtered_targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 7
+TIMEOUT_THRESHOLD = 4
+
+# Tiempo entre búsquedas
+WAIT_TIME = 1
 
 # Constants
 RED = '\033[31m'
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'  # Para restaurar el color predeterminado
-
-# Requests config
-REQUEST_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
-    "Accept-Language": "en-US,en;q=0.8,es;q=0.6",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Connection": "keep-alive",
-    "Referer": "https://www.google.com/",
-    "DNT": "1",  # Do Not Track activado
-    "Upgrade-Insecure-Requests": "1"
-}
 
 # Functions
 def log_product_found(url):
@@ -171,9 +164,10 @@ def webdriver_start(mode):
     try:
         print("🚀 Iniciando WebDriver...")
 
-        # Configure Chrome options. Obfuscate identity to bypass variou antibot measures
+        # Obfuscate metadata
         chrome_options = uc.ChromeOptions()
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        chrome_options.add_argument(f"--user-agent={random_user_agent}")
+        # Chrome Options
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
@@ -181,14 +175,33 @@ def webdriver_start(mode):
         chrome_options.add_argument("--enable-unsafe-webgl")
         chrome_options.add_argument("--disable-software-rasterizer")
         chrome_options.add_argument("--use-gl=swiftshader")
-        if mode == 1: chrome_options.add_argument("--headless=new")
+        if mode == 1:
+            chrome_options.add_argument("--headless=new")
+
+        # Randomize window size
+        width = random.randint(1024, 1920)
+        height = random.randint(768, 1080)
+        chrome_options.add_argument(f"--window-size={width},{height}")
+        # Disable images and JavaScript
+        prefs = {
+            "profile.managed_default_content_settings.images": 2
+        }
+        chrome_options.add_experimental_option("prefs", prefs)
+
+        # Disable extensions
+        chrome_options.add_argument("--disable-extensions")
+
+        # Set Page Load Strategy
+        caps = DesiredCapabilities.CHROME
+        caps["pageLoadStrategy"] = "eager"
+
 
         if chrome_version:
             print(f"✅ Versión de Chrome detectada: {chrome_version}")
-            driver = uc.Chrome(version_main=chrome_version, use_subprocess=True, options=chrome_options)
+            driver = uc.Chrome(version_main=chrome_version, desired_capabilities=caps, options=chrome_options)
         else:
             print("⚠️ No se pudo detectar la versión de Chrome. Intentando iniciar WebDriver de manera genérica...")
-            driver = uc.Chrome(use_subprocess=True, options=chrome_options)
+            driver = uc.Chrome(desired_capabilities=caps, options=chrome_options)
 
         driver.set_page_load_timeout(TIMEOUT_THRESHOLD)  # Timeout de carga de página
         driver.set_script_timeout(TIMEOUT_THRESHOLD)
@@ -257,7 +270,20 @@ def scrap_brute(url):
 def scrap_with_requests(url, selector=""):
     """Scrapea páginas usando requests y BeautifulSoup con manejo de compresión seguro."""
     try:
-        response = requests.get(url, headers=REQUEST_HEADERS, timeout=7)
+        # Configure Chrome options. Obfuscate identity to bypass various antibot measures
+
+        # Requests config
+        REQUEST_HEADERS = {
+            "User-Agent": random_user_agent,
+            "Accept-Language": "en-US,en;q=0.8,es;q=0.6",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Connection": "keep-alive",
+            "Referer": "https://www.google.com/",
+            "DNT": "1",  # Do Not Track activado
+            "Upgrade-Insecure-Requests": "1"
+}
+        response = requests.get(url, headers=REQUEST_HEADERS, timeout=TIMEOUT_THRESHOLD)
 
         # Detectar si la respuesta está comprimida
         content_encoding = response.headers.get("Content-Encoding", "").lower()
@@ -294,6 +320,10 @@ def scrap_with_requests(url, selector=""):
             print(f"⚠️ Cloudflare detectado en {url}. Cambia de VPN.")
             return None  # Evita procesar contenido bloqueado
         """
+
+        # Check HTML return
+        #print(soup)
+
         # Aplicar selector si está definido
         if selector:
             elements = soup.select(selector)
@@ -367,6 +397,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import undetected_chromedriver as uc
 import winsound
+from fake_useragent import UserAgent
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente")
 
@@ -384,6 +417,12 @@ if USE_TELEGRAM:
         print(f"✅ 🤖Bot🤖 de Telegram iniciado correctamente. Chat ID encontrado: {TELEGRAM_CHAT_ID}")
 else:
     print(f"❌ 🤖Bot🤖 de Telegram deshabilitado")
+
+# Usar una API gratuita para obtener la IP pública
+response = requests.get("https://api64.ipify.org?format=json")
+ip_public = response.json()["ip"]
+
+print(f"🌍 Tu IP pública es: {ip_public}")
 
 while True:
     show_menu()
@@ -410,6 +449,12 @@ while True:
     else:
         print("❌ Opción inválida. Inténtalo de nuevo.")
 
+
+print("🕵️‍♂️ Generando user-agent aleatorio")
+ua = UserAgent()
+random_user_agent = ua.random
+print(random_user_agent)
+
 # Detectar la versión de Chrome instalada
 chrome_version = get_chrome_version()
 
@@ -421,8 +466,14 @@ try:
     while True:
         for url, config in urls_with_terms.items():
             check_availability(url, config["terms"], config["method"], config.get("selector", ""))
+
+        print("\n🕵️‍♂️ Generando nuevo user-agent aleatorio")
+        ua = UserAgent()
+        random_user_agent = ua.random
+        print(random_user_agent)
+
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
-        time.sleep(1)
+        time.sleep(WAIT_TIME)
 
 except KeyboardInterrupt:
     print("\n❌ Búsqueda detenida manualmente.")
