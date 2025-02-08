@@ -33,7 +33,7 @@ TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 3
+TIMEOUT_THRESHOLD = 7
 
 # Constants
 RED = '\033[31m'
