@@ -1,9 +1,16 @@
 {
-  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5080": ["disponible"],
-  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?serie=gf-rtx-5000&chip-gr%C3%A1fico=gf-rtx5090": ["disponible"],
-  "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090": ["Comprar"],
-  "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080-Nvidia+Geforce+RTX+5090&page=2": ["Comprar"],
-  "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5090/serie-rtx-5080/": ["Añadir"],
-  "https://www.aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5080": ["Entrega"]
-  "https://www.aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5090": ["Entrega"]
+  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5080": {
+    "method": "request",
+    "terms": ["disponible"],
+    "selector": "span.tvlowqty"
+  },
+  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5090": {
+    "method": "request",
+    "terms": ["disponible"],
+    "selector": "span.tvlowqty"
+  },
+  "https://lifeinformatica.com/nvidia-geforce-rtx-serie-50/": {
+    "method": "brute",
+    "terms": ["Tarjetas"]
+  }
 }

@@ -1,36 +1,57 @@
-import os
 import sys
 import subprocess
 import platform
+import requests
 import time
 from datetime import datetime
 import json
 import re
 
-
 required_packages = {
     "setuptools": "setuptools",
-    "pygame": "pygame",
     "selenium": "selenium",
     "beautifulsoup4": "bs4",
     "undetected_chromedriver": "undetected_chromedriver",
-    "winsound":"winsound"
+    "winsound": "winsound",
+    "brotli": "brotli"
 }
+#####################################
+########### Config ###############
+#####################################
+
+# Winsound
+ALARM_FREQ = 2000  # Set Frequency To 2500 Hertz
+ALARM_DURATION = 800  # Set Duration To 1000 ms == 1 second
+
+# Telegram
+USE_TELEGRAM = False
+TELEGRAM_TOKEN = ""
+TELEGRAM_CHAT_ID = ""
+
+# Rutas de los diccionarios
+TARGETS_FILE = "src/data/targets.json"
+TEST_TARGETS_FILE = "src/data/test_targets.json"
+
+# Tiempo máximo de espera por página
+TIMEOUT_THRESHOLD = 7
 
 # Constants
 RED = '\033[31m'
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'  # Para restaurar el color predeterminado
-SOUND_FILE = 'src/sounds/found.mp3'
 
-# Rutas de los diccionarios
-TARGETS_FILE = "src/data/filtered_targets.json"
-TEST_TARGETS_FILE = "src/data/test_targets.json"
-
-# Winsound
-ALARM_FREQ = 2500  # Set Frequency To 2500 Hertz
-ALARM_DURATION = 50  # Set Duration To 1000 ms == 1 second
+# Requests config
+REQUEST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0",
+    "Accept-Language": "en-US,en;q=0.8,es;q=0.6",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Connection": "keep-alive",
+    "Referer": "https://www.google.com/",
+    "DNT": "1",  # Do Not Track activado
+    "Upgrade-Insecure-Requests": "1"
+}
 
 # Functions
 def log_product_found(url):
@@ -47,7 +68,6 @@ def print_separator(width=100):
 
 def install_packages(packages):
     """Instala paquetes si no están disponibles."""
-
     try:
         import setuptools  # Verifica si setuptools ya está disponible
     except ImportError:
@@ -146,7 +166,7 @@ def get_chrome_version():
         print(f"❌ Error al obtener la versión de Chrome: {e}")
         return None
 
-def start_webDriver(mode):
+def webdriver_start(mode):
     global driver
     try:
         print("🚀 Iniciando WebDriver...")
@@ -170,8 +190,8 @@ def start_webDriver(mode):
             print("⚠️ No se pudo detectar la versión de Chrome. Intentando iniciar WebDriver de manera genérica...")
             driver = uc.Chrome(use_subprocess=True, options=chrome_options)
 
-        driver.set_page_load_timeout(3)  # Timeout de carga de página
-        driver.set_script_timeout(3)
+        driver.set_page_load_timeout(TIMEOUT_THRESHOLD)  # Timeout de carga de página
+        driver.set_script_timeout(TIMEOUT_THRESHOLD)
 
         print("✅ WebDriver inicializado correctamente.")
         print_separator()
@@ -180,26 +200,26 @@ def start_webDriver(mode):
         print(f"❌ Error al iniciar WebDriver: {e}")
         sys.exit(1)  # Detener el script si no se puede iniciar el WebDriver
 
-def restart_webDriver():
-        """Reinicia el WebDriver correctamente, asegurando que se cierre antes de volver a iniciar."""
-        global driver
-        print("🔄 Reiniciando WebDriver...")
-        try:
-            driver.quit()
-            time.sleep(3)
-        except Exception as e:
-            print(f"⚠️ Aviso al cerrar WebDriver: {e}")
-            exit()
-        start_webDriver(mode)
+def webdriver_restart():
+    """Reinicia el WebDriver correctamente, asegurando que se cierre antes de volver a iniciar."""
+    global driver
+    print("🔄 Reiniciando WebDriver...")
+    try:
+        driver.quit()
+        time.sleep(3)
+    except Exception as e:
+        print(f"⚠️ Aviso al cerrar WebDriver: {e}")
+        exit()
+    webdriver_start(mode)
 
-def check_availability(url, search_terms):
+def scrap_brute(url):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
         driver.get(url)  # Intentar cargar la página con timeout de 15 segundos
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
-        WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
+        WebDriverWait(driver, TIMEOUT_THRESHOLD).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
         try:
             page_element = driver.find_element(By.TAG_NAME, "main")
         except:
@@ -210,53 +230,129 @@ def check_availability(url, search_terms):
         tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
         for tag in tags_to_remove:
             driver.execute_script(f"""
-                var elements = document.getElementsByTagName('{tag}');
-                while (elements[0]) {{
-                    elements[0].parentNode.removeChild(elements[0]);
-                }}
-            """)
+                    var elements = document.getElementsByTagName('{tag}');
+                    while (elements[0]) {{
+                        elements[0].parentNode.removeChild(elements[0]);
+                    }}
+                """)
 
         # Obtener el contenido filtrado
         page_content = page_element.get_attribute("innerHTML")
 
         # Utilizamos BeautifulSoup para limpiar y extraer solo el texto visible
-        soup = BeautifulSoup(page_content, 'html.parser')
+        return BeautifulSoup(page_content, 'html.parser')
 
-        # Obtener el texto visible (sin etiquetas de estilo, script, etc.)
-        visible_text = ' '.join(soup.stripped_strings)
-
-        # Expresión regular para buscar los textos sin distinguir mayúsculas/minúsculas
-        found = False
-        for term in search_terms:
-            # Revisar si el término está presente en el texto visible
-            if re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE):
-                found = True
-                #print(f"Término encontrado: {term}")  # Muestra el término que se encontró
-                break
-        if found:
-            try:
-                winsound.Beep(ALARM_FREQ, ALARM_FREQ)
-            except Exception as e:
-                print(f"❌ No se ha podido reproducir la alarma: {e}")
-
-            log_product_found(url)
-            print_separator()
-            print(f"💸💸💸💸 PRODUCTO DISPONIBLE  💸💸💸💸")
-            print(f"\n{url}")
-            print_separator()
-        else:
-            short_url = url[:70] + "..." if len(url) > 70 else url
-            print(f"❌ Producto NO disponible en: {short_url}")
     except Exception as e:
-        error_message = str(e).lower()  # Convertir el error a minúsculas para detección flexible
+        error_message = str(e).lower()
         if ("invalid session id" in error_message
                 or "read timeout" in error_message):
-#               or "timed out receiving message from renderer" in error_message):
+            #               or "timed out receiving message from renderer" in error_message):
             print(f"⚠️ Error detectado: {error_message}")
-            restart_webDriver()
+            webdriver_restart()
+            return None
         else:
             print(f"⚠️ Error inesperado en {url}: {e}")
+            return None
 
+def scrap_with_requests(url, selector=""):
+    """Scrapea páginas usando requests y BeautifulSoup con manejo de compresión seguro."""
+    try:
+        response = requests.get(url, headers=REQUEST_HEADERS, timeout=7)
+
+        # Detectar si la respuesta está comprimida
+        content_encoding = response.headers.get("Content-Encoding", "").lower()
+        raw_content = response.content
+
+        # Si el contenido empieza con '<', es HTML y no necesita descomprimir
+        if raw_content[:2] == b'<!':
+            html = raw_content.decode("utf-8", errors="ignore")
+        elif content_encoding == "gzip":
+            try:
+                print(f"📌 Respuesta comprimida con GZIP en {url}. Descomprimiendo...")
+                html = gzip.decompress(raw_content).decode("utf-8", errors="ignore")
+            except OSError:
+                print(f"❌ Error: El contenido de {url} no es realmente un archivo GZIP.")
+                html = raw_content.decode("utf-8", errors="ignore")  # Leer sin descomprimir
+        elif content_encoding == "br":
+            try:
+                print(f"📌 Respuesta comprimida con Brotli en {url}. Descomprimiendo...")
+                html = brotli.decompress(raw_content).decode("utf-8", errors="ignore")
+            except brotli.error:
+                print(f"❌ Error: El contenido de {url} no es realmente Brotli.")
+                html = raw_content.decode("utf-8", errors="ignore")  # Leer sin descomprimir
+        else:
+            html = raw_content.decode("utf-8", errors="ignore")  # Si no está comprimido, usarlo tal cual
+
+        # Verificar si la respuesta es válida
+        if "<html" not in html:
+            print(f"❌ La respuesta de {url} no contiene HTML válido.")
+            return None
+        soup = BeautifulSoup(html, "html.parser")
+
+        """# Verificar si la página fue bloqueada por Cloudflare
+        if "Cloudflare" in html or "CloudFlare" or "Attention Required" in html:
+            print(f"⚠️ Cloudflare detectado en {url}. Cambia de VPN.")
+            return None  # Evita procesar contenido bloqueado
+        """
+        # Aplicar selector si está definido
+        if selector:
+            elements = soup.select(selector)
+            if elements:
+                # Si hay varios elementos, extraer el texto de cada uno
+                return BeautifulSoup("\n".join(str(el) for el in elements), "html.parser")  # Retorna un nuevo `soup`
+            else:
+                # Si el producto no está disponible, no encuentra el selector en muchos casos
+                return None
+        return soup  # Retornar el contenido si no hay selector específico
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ No se pudo acceder a {url}: {e}")
+        return None
+
+def check_availability(url, search_terms, method, selector=""):
+    """Verifica si un producto está disponible según el method y términos configurados."""
+    global driver
+    try:
+        if method == "request":
+            soup = scrap_with_requests(url, selector)
+        elif method == "brute":
+            soup = scrap_brute(url)
+        else:
+            print(f"⚠️ Método desconocido para {url}. Saltando...")
+            return
+        if soup:
+            visible_text = ' '.join(soup.stripped_strings)
+            found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
+
+            if found:
+                print(f"💸 Producto DISPONIBLE en: {url}")
+                log_product_found(url)
+                winsound.Beep(ALARM_FREQ, ALARM_DURATION)
+                if USE_TELEGRAM:
+                    try:
+                        send_message_telegram(f"💸💸💸💸 STOCK DISPONIBLE  💸💸💸💸\n\n{url}")
+                        print(f"✅ Notificado")
+                    except Exception as e:
+                        print(f"❌ Error al enviar mensaje a Telegram: {e}")
+                    print_separator()
+            else:
+                short_url = url[:70] + "..." if len(url) > 70 else url
+                print(f"❌ Producto NO disponible en: {short_url}")
+        elif method == "request":
+            short_url = url[:70] + "..." if len(url) > 70 else url
+            print(f"❌ Producto NO disponible en: {short_url}")
+        else:
+            return  # Si el scraping falló, pasamos al siguiente
+    except Exception as e:
+        print(f"⚠️ Error en {url}")
+        #print(f"⚠️ Error en {url}: {e}")
+
+def send_message_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    params = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message
+    }
+    requests.get(url, params=params)
 
 #####################################
 ########### Execution ###############
@@ -265,7 +361,6 @@ def check_availability(url, search_terms):
 # Instalar e importar librerías
 install_packages(required_packages)
 
-import pygame
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -273,15 +368,22 @@ from selenium.webdriver.support import expected_conditions as EC
 import undetected_chromedriver as uc
 import winsound
 
-print("✅ Todas las dependencias han sido instaladas e importadas correctamente.")
+print("✅ Todas las dependencias han sido instaladas e importadas correctamente")
 
 # Inicializar Alarma
-pygame.init()
-if not os.path.isfile(SOUND_FILE):
-    print(f"⚠️ El archivo de sonido no se encuentra en la ruta: {SOUND_FILE}")
+if ALARM_FREQ and ALARM_DURATION:
+    print("✅ 🚨Alarma🚨 preparada")
 else:
-    money = pygame.mixer.Sound(SOUND_FILE)
-    print(f"✅ 🚨Alarma🚨 preparada")
+    print(f"❌ No se ha podido inicializar la alarma")
+
+#Inicializar Telegram
+if USE_TELEGRAM:
+    if not TELEGRAM_CHAT_ID:
+        print("❌ 🤖Bot🤖 de Telegram no configurado")
+    else:
+        print(f"✅ 🤖Bot🤖 de Telegram iniciado correctamente. Chat ID encontrado: {TELEGRAM_CHAT_ID}")
+else:
+    print(f"❌ 🤖Bot🤖 de Telegram deshabilitado")
 
 while True:
     show_menu()
@@ -312,13 +414,13 @@ while True:
 chrome_version = get_chrome_version()
 
 # Inicializar WebDriver
-start_webDriver(mode)
+webdriver_start(mode)
 
 # Loop infinito para revisar cada página periódicamente
 try:
     while True:
-        for url, search_terms in urls_with_terms.items():
-            check_availability(url, search_terms)
+        for url, config in urls_with_terms.items():
+            check_availability(url, config["terms"], config["method"], config.get("selector", ""))
         print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
         time.sleep(1)
 

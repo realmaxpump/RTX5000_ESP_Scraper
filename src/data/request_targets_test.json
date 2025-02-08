@@ -1,0 +1,22 @@
+{
+  "https://www.aussar.es/tarjetas-graficas/?q=Modelo%20GPU-AMD%20Radeon%207600%20XT-Geforce": {
+    "method": "request",
+    "terms": ["Carro"],
+    "selector": "button.add-to-cart:not(.disabled)"
+  },
+  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5080": {
+    "method": "request",
+    "terms": ["disponible"],
+    "selector": "html"
+  },
+  "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+4060Ti": {
+    "method": "request",
+    "terms": ["Comprar"],
+    "selector": "div.product-add-cart"
+  },
+  "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5090/": {
+    "method": "request",
+    "terms": ["Añadir"],
+    "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
+  }
+}
