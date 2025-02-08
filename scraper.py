@@ -296,7 +296,7 @@ def check_availability(url, search_terms, method, selector=""):
             short_url = url[:70] + "..." if len(url) > 70 else url
             print(f"❌ Producto NO disponible en: {short_url}")
 
-    except (TimeoutException, WebDriverException) as e:
+    except Exception as e:
         print(f"⚠️ Error en {url}: {e}")
         webdriver_restart()
 
