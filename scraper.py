@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import platform
+import socket
 import requests
 import random
 import time
@@ -15,7 +16,7 @@ required_packages = {
     "fake-useragent": "fake_useragent",
     "beautifulsoup4": "bs4",
     "brotli": "brotli",
-    "winsound": "winsound"
+    "winsound": "winsound",
 }
 #####################################
 ########### Config ###############
@@ -35,10 +36,14 @@ TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 5
+TIMEOUT_THRESHOLD = 4
 
 # Tiempo entre búsquedas
 WAIT_TIME = 1
+
+# Proxies (free-proxy-list)
+PROXIES_NUMBER = 10
+PROXIES = []
 
 # Constants
 RED = '\033[31m'
@@ -159,29 +164,73 @@ def get_chrome_version():
         print(f"❌ Error al obtener la versión de Chrome: {e}")
         return None
 
+def fetch_new_proxies(max_number_of_proxies):
+    def get_soup(url):
+        return BeautifulSoup(requests.get(url).text, "html.parser")
+
+    soup = get_soup("https://free-proxy-list.net/")
+    trs = soup.find_all("tr")
+
+    def validate_ip(addr):
+        try:
+            socket.inet_aton(addr)
+            return True
+        except socket.error:
+            return False
+
+    def validate_port(port):
+        return str(port).isdigit() and 1000 < int(port) < 99999
+
+    proxies = list()
+
+    for tr in trs:
+        tds = tr.find_all("td")
+        if tds:
+            ip = tds[0].text
+            if not validate_ip(ip):
+                continue
+            port = tds[1].text
+            if not validate_port(port):
+                continue
+            if "elite" not in tds[4].text:
+                continue
+            if "minutes" in tds[-1].text:
+                continue
+            protocol = "https" if "yes" in tds[6].text.strip() else "http"
+            proxy = f"{protocol}://{ip}:{port}"
+            proxies.append(proxy)
+            if len(proxies) > max_number_of_proxies:
+                break
+    return proxies
+
 def webdriver_start(mode):
     global driver
     try:
         print("🚀 Iniciando WebDriver...")
 
-        # Obfuscate metadata
-        chrome_options = uc.ChromeOptions()
-        chrome_options.add_argument(f"--user-agent={random_user_agent}")
         # Chrome Options
+
+        chrome_options = uc.ChromeOptions()
+        chrome_options.add_argument("--log-level=3")
+
+        # Obfuscate metadata
+        chrome_options.add_argument(f"--user-agent={random_user_agent}")
+        """
+        #Add proxy rotation
+        random_proxy = random.choice(PROXIES)
+        chrome_options.add_argument(f"--proxy-server={random_proxy}")
+        """
+
+        if mode == 1:chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         #chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--log-level=3")
         chrome_options.add_argument("--enable-unsafe-webgl")
         chrome_options.add_argument("--disable-software-rasterizer")
         #chrome_options.add_argument("--use-gl=swiftshader")
-        if mode == 1:
-            chrome_options.add_argument("--headless=new")
 
         # Randomize window size
-        width = random.randint(1024, 1920)
-        height = random.randint(768, 1080)
-        chrome_options.add_argument(f"--window-size={width},{height}")
+        chrome_options.add_argument(f"--window-size={random.randint(1024, 1920)},{random.randint(768, 1080)}")
         # Disable images and JavaScript
         prefs = {
             "profile.managed_default_content_settings.images": 2
@@ -268,7 +317,7 @@ def scrap_brute(url):
             return None
 
 def scrap_with_requests(url, selector=""):
-    """Scrapea páginas usando requests y BeautifulSoup con manejo de compresión seguro."""
+    """Scrapea páginas usando requests y BeautifulSoup con manejo de compresión seguro. Usar Scrapy en el futuro"""
     try:
         # Configure Chrome options. Obfuscate identity to bypass various antibot measures
 
@@ -354,7 +403,7 @@ def check_availability(url, search_terms, method, selector=""):
             found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
 
             if found:
-                print(f"💸 Producto DISPONIBLE en: {url}")
+                print(f"💸 STOCK DISPONIBLE en: {url}")
                 log_product_found(url)
                 winsound.Beep(ALARM_FREQ, ALARM_DURATION)
                 if USE_TELEGRAM:
@@ -366,10 +415,10 @@ def check_availability(url, search_terms, method, selector=""):
                     print_separator()
             else:
                 short_url = url[:70] + "..." if len(url) > 70 else url
-                print(f"❌ Producto NO disponible en: {short_url}")
+                print(f"❌ STOCK NO disponible en: {short_url}")
         elif method == "request":
             short_url = url[:70] + "..." if len(url) > 70 else url
-            print(f"❌ Producto NO disponible en: {short_url}")
+            print(f"❌ STOCK NO disponible en: {short_url}")
         else:
             return  # Si el scraping falló, pasamos al siguiente
     except Exception as e:
@@ -450,10 +499,13 @@ while True:
         print("❌ Opción inválida. Inténtalo de nuevo.")
 
 
-print("🕵️‍♂️ Generando user-agent aleatorio")
+print("🕵‍ Generando user-agent aleatorio...")
 ua = UserAgent()
 random_user_agent = ua.random
 print(random_user_agent)
+
+print("🛰️ Generando proxies")
+PROXIES = fetch_new_proxies(PROXIES_NUMBER)
 
 # Detectar la versión de Chrome instalada
 chrome_version = get_chrome_version()
@@ -467,7 +519,7 @@ try:
         for url, config in urls_with_terms.items():
             check_availability(url, config["terms"], config["method"], config.get("selector", ""))
 
-        print("\n🕵️‍♂️ Generando nuevo user-agent aleatorio")
+        print("\n🕵️‍♂️ Generando nuevo user-agent aleatorio...")
         ua = UserAgent()
         random_user_agent = ua.random
         print(random_user_agent)
