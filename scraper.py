@@ -212,7 +212,7 @@ def webdriver_restart():
         exit()
     webdriver_start(mode)
 
-def scrape_brute(url):
+def scrap_brute(url):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
         driver.get(url)  # Intentar cargar la página con timeout de 15 segundos
@@ -254,7 +254,7 @@ def scrape_brute(url):
             print(f"⚠️ Error inesperado en {url}: {e}")
             return None
 
-def scrape_with_requests(url, selector=""):
+def scrap_with_requests(url, selector=""):
     """Scrapea páginas usando requests y BeautifulSoup con manejo de compresión seguro."""
     try:
         response = requests.get(url, headers=REQUEST_HEADERS, timeout=7)
@@ -289,6 +289,11 @@ def scrape_with_requests(url, selector=""):
             return None
         soup = BeautifulSoup(html, "html.parser")
 
+        """# Verificar si la página fue bloqueada por Cloudflare
+        if "Cloudflare" in html or "CloudFlare" or "Attention Required" in html:
+            print(f"⚠️ Cloudflare detectado en {url}. Cambia de VPN.")
+            return None  # Evita procesar contenido bloqueado
+        """
         # Aplicar selector si está definido
         if selector:
             elements = soup.select(selector)
@@ -308,9 +313,9 @@ def check_availability(url, search_terms, method, selector=""):
     global driver
     try:
         if method == "request":
-            soup = scrape_with_requests(url, selector)
+            soup = scrap_with_requests(url, selector)
         elif method == "brute":
-            soup = scrape_brute(url)
+            soup = scrap_brute(url)
         else:
             print(f"⚠️ Método desconocido para {url}. Saltando...")
             return
