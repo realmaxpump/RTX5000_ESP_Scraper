@@ -1,9 +1,4 @@
 {
-  "https://lifeinformatica.com/tarjetas-graficas-geforce-rtx-serie-50/": {
-    "method": "brute",
-    "terms": ["Tarjetas"],
-    "selector": "#5080, #5090"
-  },
   "https://www.appinformatica.com/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5080": {
     "method": "brute",
     "terms": ["Añadir"]
@@ -24,5 +19,11 @@
     "method": "brute",
     "terms": ["Agotado"],
     "selector": "#id_5080"
+  },
+  "https://lifeinformatica.com/tarjetas-graficas-geforce-rtx-serie-50/": {
+    "method": "brute",
+    "terms": ["Agotado"],
+    "selector": "#id_5090"
   }
+}
 }
