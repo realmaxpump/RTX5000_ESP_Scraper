@@ -32,11 +32,11 @@ TELEGRAM_TOKEN = ""
 TELEGRAM_CHAT_ID = ""
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/filtered_targets.json"
+TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 10
+TIMEOUT_THRESHOLD = 5
 
 # Tiempo entre búsquedas
 WAIT_TIME = 1
@@ -299,15 +299,11 @@ def scrap_brute(url, selector=""):
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
         WebDriverWait(driver, TIMEOUT_THRESHOLD).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
 
-        # Eliminar elementos no deseados directamente del DOM
+        ## Lista de etiquetas a eliminar
         #tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
-        #for tag in tags_to_remove:
-        #    driver.execute_script(f"""
-        #            var elements = document.getElementsByTagName('{tag}');
-        #            while (elements[0]) {{
-        #                elements[0].parentNode.removeChild(elements[0]);
-        #            }}
-        #        """)
+        ## Eliminar las etiquetas y su contenido
+        #for tag in soup(tags_to_remove):
+        #    tag.decompose()
 
         # Obtener el contenido filtrado
         page_content = driver.page_source
@@ -388,6 +384,7 @@ def scrap_with_requests(url, selector=""):
         if "<html" not in html:
             print(f"❌ La respuesta de {url} no contiene HTML válido.")
             return None
+
         soup = BeautifulSoup(html, "html.parser")
 
         # Verificar si la página fue bloqueada por Cloudflare
@@ -397,6 +394,12 @@ def scrap_with_requests(url, selector=""):
 
         # Check HTML return
         #print(soup)
+
+        ## Lista de etiquetas a eliminar
+        #tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
+        ## Eliminar las etiquetas y su contenido
+        #for tag in soup(tags_to_remove):
+        #    tag.decompose()
 
         # Aplicar múltiples selectores si están definidos
         if selector:
@@ -416,6 +419,7 @@ def scrap_with_requests(url, selector=""):
         return soup  # Si no hay selector, devolver el contenido completo
 
     except requests.exceptions.RequestException as e:
+        print(f"⚠️ No se pudo acceder a {url}")
         print(f"⚠️ No se pudo acceder a {url}: {e}")
         return None
 
@@ -442,12 +446,14 @@ def check_availability(mode, url, search_terms, method, selector=""):
             found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
 
             if found:
-                print(f"💸 STOCK DISPONIBLE en: {url}")
+                print_separator()
+                print(f"💸 {GREEN}STOCK DISPONIBLE{RESET} en: {url}")
+                print_separator()
                 log_product_found(url)
                 winsound.Beep(ALARM_FREQ, ALARM_DURATION)
                 if USE_TELEGRAM:
                     try:
-                        send_message_telegram(f"💸💸💸💸 STOCK DISPONIBLE  💸💸💸💸\n\n{url}")
+                        send_message_telegram(f"💸💸💸 STOCK DISPONIBLE  💸💸💸\n\n{url}")
                         print(f"✅ Notificado")
                     except Exception as e:
                         print(f"❌ Error al enviar mensaje a Telegram: {e}")

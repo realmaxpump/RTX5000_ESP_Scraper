@@ -5,7 +5,7 @@
         "selector": "button.add-to-cart"
     },
     "https://aussar.es/tarjetas-graficas": {
-        "method": "request",
+        "method": "brute",
         "terms": ["Carro"],
         "selector": "button.add-to-cart:not(.disabled)"
     },
@@ -15,7 +15,7 @@
         "selector": "availability-product"
     },
     "https://coolmod.com/tarjetas-graficas": {
-        "method": "request",
+        "method": "brute",
         "terms": ["Añadir"],
         "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
     },
@@ -45,7 +45,7 @@
         "selector": "#pdp-section-buybox"
     },
     "https://redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020": {
-        "method": "request",
+        "method": "brute",
         "terms": ["Comprar"],
         "selector": "div.product-add-cart"
     },
