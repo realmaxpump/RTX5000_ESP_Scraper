@@ -10,23 +10,28 @@ Just run, dependencies will be automatically installed. If any available product
 
 [CHANGELOG]
 
-07/02/2023 - 1.4.2
+10/02/2024 - 2.0.0
+    
+    - Added request mode.
+    - Code improvements and more vendors.
+    
+07/02/2024 - 1.4.2
     
     - Fixed various forced exceptions (naughty boys).
     
-07/02/2023 - 1.4.1:
+07/02/2024 - 1.4.1:
     
     - Add graphical search mode.
     - Fix dependencies installation function.
     - Remove redundancies.
 
-07/02/2023 - 1.4:
+07/02/2024 - 1.4:
 
     - New Menu.
     - Don't give a fu about CloudFlare.
     - General refactoring and fixes.
     
-05/02/2023 - 1.3:
+05/02/2024 - 1.3:
 
     - Added antibot counter measures. Nvidia marketplace is now scraped correctly.
 
