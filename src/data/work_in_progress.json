@@ -1,16 +1,28 @@
 {
-  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5080": {
-    "method": "request",
-    "terms": ["disponible"],
-    "selector": "span.tvlowqty"
-  },
-  "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5090": {
-    "method": "request",
-    "terms": ["disponible"],
-    "selector": "span.tvlowqty"
-  },
-  "https://lifeinformatica.com/nvidia-geforce-rtx-serie-50/": {
+  "https://lifeinformatica.com/tarjetas-graficas-geforce-rtx-serie-50/": {
     "method": "brute",
-    "terms": ["Tarjetas"]
+    "terms": ["Tarjetas"],
+    "selector": "#5080, #5090"
+  },
+  "https://www.appinformatica.com/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5080": {
+    "method": "brute",
+    "terms": ["Añadir"]
+  },
+  "https://www.appinformatica.com/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5090": {
+    "method": "brute",
+    "terms": ["Añadir"]
+  },
+  "https://www.beep.es/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5080": {
+    "method": "brute",
+    "terms": ["AÑADIR"]
+  },
+  "https://www.beep.es/componentes-de-ordenador/tarjetas-graficas/geforce-rtx-5090": {
+    "method": "brute",
+    "terms": ["AÑADIR"]
+  },
+  "https://lifeinformatica.com/tarjetas-graficas-geforce-rtx-serie-50/": {
+    "method": "brute",
+    "terms": ["Agotado"],
+    "selector": "#id_5080"
   }
 }

@@ -36,7 +36,7 @@ TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 4
+TIMEOUT_THRESHOLD = 10
 
 # Tiempo entre búsquedas
 WAIT_TIME = 1
@@ -85,18 +85,34 @@ def install_packages(packages):
             try:
                 __import__(module)  # Intentar importar de nuevo tras la instalación
             except ImportError:
-                print(f"❌ No se pudo instalar correctamente {package}. Reintente manualmente.")
+                print(f"❌ No se pudo instalar correctamente {package}. Reintente manualmente")
                 exit(1)  # Detener ejecución si falla
 
-def show_menu():
+def show_menu_mode():
     print_separator()
     print("🎯 Selecciona una opción:")
-    print("1️🔹 Empezar Búsqueda en modo silencioso (recomendado)")
-    print("2️🔹 Empezar Búsqueda en modo gráfico")
-    print("3️🔹 Modo Test de URLs")
-    print("4️🔹 Salir")
+    print("1️🔹 Empezar Búsqueda en modo híbrido (Estable. Brute + request scrap)")
+    print("2️🔹 Empezar Búsqueda en modo request (Experimental. Más rápido)")
+    print("3️🔹 Salir")
     print(f"\n\tScript desarrollado por: {RED}RealMaxPump {RESET}")
     print("\thttps://github.com/realmaxpump")
+    print_separator()
+
+def show_menu_mode_hybrid():
+    print_separator()
+    print("🎯 Selecciona una opción:")
+    print("1️🔹 Empezar Búsqueda en sub-modo silencioso (recomendado)")
+    print("2️🔹 Empezar Búsqueda en sub-modo gráfico")
+    print("3️🔹 Modo Test de URLs")
+    print("4️🔹 Salir")
+    print_separator()
+
+def show_menu_mode_request():
+    print_separator()
+    print("🎯 Selecciona una opción:")
+    print("1️🔹 Empezar Búsqueda")
+    print("2️🔹 Modo Test de URLs")
+    print("3️🔹 Salir")
     print_separator()
 
 def load_urls_from_file(file):
@@ -221,7 +237,7 @@ def webdriver_start(mode):
         chrome_options.add_argument(f"--proxy-server={random_proxy}")
         """
 
-        if mode == 1:chrome_options.add_argument("--headless=new")
+        if mode == 1: chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         #chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
@@ -255,7 +271,7 @@ def webdriver_start(mode):
         driver.set_page_load_timeout(TIMEOUT_THRESHOLD)  # Timeout de carga de página
         driver.set_script_timeout(TIMEOUT_THRESHOLD)
 
-        print("✅ WebDriver inicializado correctamente.")
+        print("✅ WebDriver inicializado correctamente")
         print_separator()
 
     except Exception as e:
@@ -274,7 +290,7 @@ def webdriver_restart():
         exit()
     webdriver_start(mode)
 
-def scrap_brute(url):
+def scrap_brute(url, selector=""):
     """Verifica la disponibilidad de las tarjetas gráficas en la página, ignorando header, footer, scripts y metadatos."""
     try:
         driver.get(url)  # Intentar cargar la página con timeout de 15 segundos
@@ -282,27 +298,36 @@ def scrap_brute(url):
 
         # Esperar hasta que la página cargue completamente (máximo 10 segundos)
         WebDriverWait(driver, TIMEOUT_THRESHOLD).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main, body")))
-        try:
-            page_element = driver.find_element(By.TAG_NAME, "main")
-        except:
-            # Si no hay <main>, extraer contenido de <body>
-            page_element = driver.find_element(By.TAG_NAME, "body")
 
         # Eliminar elementos no deseados directamente del DOM
-        tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
-        for tag in tags_to_remove:
-            driver.execute_script(f"""
-                    var elements = document.getElementsByTagName('{tag}');
-                    while (elements[0]) {{
-                        elements[0].parentNode.removeChild(elements[0]);
-                    }}
-                """)
+        #tags_to_remove = ["header", "footer", "script", "style", "meta", "nav", "aside"]
+        #for tag in tags_to_remove:
+        #    driver.execute_script(f"""
+        #            var elements = document.getElementsByTagName('{tag}');
+        #            while (elements[0]) {{
+        #                elements[0].parentNode.removeChild(elements[0]);
+        #            }}
+        #        """)
 
         # Obtener el contenido filtrado
-        page_content = page_element.get_attribute("innerHTML")
+        page_content = driver.page_source
 
-        # Utilizamos BeautifulSoup para limpiar y extraer solo el texto visible
-        return BeautifulSoup(page_content, 'html.parser')
+        soup = BeautifulSoup(page_content, "html.parser")
+
+        # Aplicar múltiples selectores si están definidos
+        if selector:
+            if isinstance(selector, str):
+                selector = [selector]  # Convertir en lista si es un solo string
+
+            selected_elements = []
+            for sel in selector:
+                sel = sel.strip()
+                elements = soup.select(sel)
+                if elements:
+                    selected_elements.extend(str(el) for el in elements)
+
+            if selected_elements:
+                return BeautifulSoup("\n".join(selected_elements), "html.parser")
 
     except Exception as e:
         error_message = str(e).lower()
@@ -343,17 +368,17 @@ def scrap_with_requests(url, selector=""):
             html = raw_content.decode("utf-8", errors="ignore")
         elif content_encoding == "gzip":
             try:
-                print(f"📌 Respuesta comprimida con GZIP en {url}. Descomprimiendo...")
+                #print(f"📌 Respuesta comprimida con GZIP en {url}. Descomprimiendo...")
                 html = gzip.decompress(raw_content).decode("utf-8", errors="ignore")
             except OSError:
-                print(f"❌ Error: El contenido de {url} no es realmente un archivo GZIP.")
+                #print(f"❌ Error: El contenido de {url} no es realmente un archivo GZIP.")
                 html = raw_content.decode("utf-8", errors="ignore")  # Leer sin descomprimir
         elif content_encoding == "br":
             try:
-                print(f"📌 Respuesta comprimida con Brotli en {url}. Descomprimiendo...")
+                #print(f"📌 Respuesta comprimida con Brotli en {url}. Descomprimiendo...")
                 html = brotli.decompress(raw_content).decode("utf-8", errors="ignore")
             except brotli.error:
-                print(f"❌ Error: El contenido de {url} no es realmente Brotli.")
+                #print(f"❌ Error: El contenido de {url} no es realmente Brotli.")
                 html = raw_content.decode("utf-8", errors="ignore")  # Leer sin descomprimir
         else:
             html = raw_content.decode("utf-8", errors="ignore")  # Si no está comprimido, usarlo tal cual
@@ -364,40 +389,53 @@ def scrap_with_requests(url, selector=""):
             return None
         soup = BeautifulSoup(html, "html.parser")
 
-        """# Verificar si la página fue bloqueada por Cloudflare
-        if "Cloudflare" in html or "CloudFlare" or "Attention Required" in html:
-            print(f"⚠️ Cloudflare detectado en {url}. Cambia de VPN.")
+        # Verificar si la página fue bloqueada por Cloudflare
+        if "You can email the site owner to let them know you were blocked" in html:
+            print(f"⚠️ Cloudflare detectado en {url}. Pasando a siguiente entrada...")
             return None  # Evita procesar contenido bloqueado
-        """
 
         # Check HTML return
         #print(soup)
 
-        # Aplicar selector si está definido
+        # Aplicar múltiples selectores si están definidos
         if selector:
-            elements = soup.select(selector)
-            if elements:
-                # Si hay varios elementos, extraer el texto de cada uno
-                return BeautifulSoup("\n".join(str(el) for el in elements), "html.parser")  # Retorna un nuevo `soup`
-            else:
-                # Si el producto no está disponible, no encuentra el selector en muchos casos
-                return None
-        return soup  # Retornar el contenido si no hay selector específico
+            if isinstance(selector, str):
+                selector = [selector]  # Convertir en lista si es un solo string
+
+            selected_elements = []
+            for sel in selector:
+                sel = sel.strip()
+                elements = soup.select(sel)
+                if elements:
+                    selected_elements.extend(str(el) for el in elements)
+
+            if selected_elements:
+                return BeautifulSoup("\n".join(selected_elements), "html.parser")
+
+        return soup  # Si no hay selector, devolver el contenido completo
+
     except requests.exceptions.RequestException as e:
         print(f"⚠️ No se pudo acceder a {url}: {e}")
         return None
 
-def check_availability(url, search_terms, method, selector=""):
+def check_availability(mode, url, search_terms, method, selector=""):
     """Verifica si un producto está disponible según el method y términos configurados."""
     global driver
     try:
-        if method == "request":
+        if mode == 1 or mode == 2 or mode == 3:
+            if method == "request":
+                soup = scrap_with_requests(url, selector)
+            elif method == "brute":
+                soup = scrap_brute(url, selector)
+            else:
+                print(f"⚠️ Método desconocido para {url}. Saltando...")
+                return
+        elif mode == 4 or mode == 5:
             soup = scrap_with_requests(url, selector)
-        elif method == "brute":
-            soup = scrap_brute(url)
         else:
-            print(f"⚠️ Método desconocido para {url}. Saltando...")
+            print(f"⚠️ Modo inválido. Saltando ...")
             return
+
         if soup:
             visible_text = ' '.join(soup.stripped_strings)
             found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
@@ -416,14 +454,12 @@ def check_availability(url, search_terms, method, selector=""):
             else:
                 short_url = url[:70] + "..." if len(url) > 70 else url
                 print(f"❌ STOCK NO disponible en: {short_url}")
-        elif method == "request":
+        else:
             short_url = url[:70] + "..." if len(url) > 70 else url
             print(f"❌ STOCK NO disponible en: {short_url}")
-        else:
-            return  # Si el scraping falló, pasamos al siguiente
     except Exception as e:
-        print(f"⚠️ Error en {url}")
-        #print(f"⚠️ Error en {url}: {e}")
+        #print(f"⚠️ Error en {url}")
+        print(f"⚠️ Error en {url}: {e}")
 
 def send_message_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -444,10 +480,11 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import undetected_chromedriver as uc
-import winsound
-from fake_useragent import UserAgent
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from fake_useragent import UserAgent
+import undetected_chromedriver as uc
+import brotli
+import winsound
 
 
 print("✅ Todas las dependencias han sido instaladas e importadas correctamente")
@@ -472,54 +509,86 @@ response = requests.get("https://api64.ipify.org?format=json")
 ip_public = response.json()["ip"]
 
 print(f"🌍 Tu IP pública es: {ip_public}")
+print("🕵‍ Generando user-agent aleatorio...")
+ua = UserAgent()
+random_user_agent = ua.random
+print(random_user_agent)
+
+print("🛰️ Generando proxies...")
+PROXIES = fetch_new_proxies(PROXIES_NUMBER)
 
 while True:
-    show_menu()
-    choice = input("🔹 Opción (1/2/3/4): ").strip()
+
+    show_menu_mode()
+    choice = input("🔹 Opción (1/2/3): ").strip()
+    mode = None
+
+    # Find Chrome version for driver setup
+    chrome_version = get_chrome_version()
 
     if choice == "1":
-        mode = 1
-        print("\n🚀 Iniciando búsqueda de disponibilidad silencioso...")
-        urls_with_terms = load_urls_from_file(TARGETS_FILE)
+        chrome_version = get_chrome_version()
+        show_menu_mode_hybrid()
+        choice = input("🔹 Opción (1/2/3/4): ").strip()
+        if choice == "1":
+            mode = 1
+            # Initialize webdriver
+            webdriver_start(mode)
+            print("\n🛠️ Iniciando búsqueda de disponibilidad por modo híbrido silencioso...")
+            urls_with_terms = load_urls_from_file(TARGETS_FILE)
+            break
+        elif choice == "2":
+            mode = 2
+            # Initialize webdriver
+            webdriver_start(mode)
+            print("\n🛠️ Iniciando búsqueda de disponibilidad por modo híbrido gráfico...")
+            urls_with_terms = load_urls_from_file(TARGETS_FILE)
+            break
+        elif choice == "3":
+            mode = 3
+            # Initialize webdriver
+            webdriver_start(mode)
+            print("\n🛠️ Iniciando Modo Test con URLs de prueba por modo híbrido ...")
+            urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
+        elif choice == "4":
+            print("👋 ¡Espero que haya habido suerte!")
+            sys.exit()
+        else:
+            print("❌ Opción inválida. Inténtalo de nuevo.")
         break
     elif choice == "2":
-        mode = 2
-        print("\n🛠️ Iniciando búsqueda de disponibilidad gráfico...")
-        urls_with_terms = load_urls_from_file(TARGETS_FILE)
+        show_menu_mode_request()
+        choice = input("🔹 Opción (1/2/3): ").strip()
+        if choice == "1":
+            mode = 4
+            print("\n🛠️ Iniciando búsqueda de disponibilidad por request...")
+            urls_with_terms = load_urls_from_file(TARGETS_FILE)
+            break
+        elif choice == "2":
+            mode = 5
+            print("\n🛠️ Iniciando Modo Test con URLs de prueba por modo request...")
+            urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
+            break
+        elif choice == "3":
+            print("👋 ¡Espero que haya habido suerte!")
+            sys.exit()
+        else:
+            print("❌ Opción inválida. Inténtalo de nuevo.")
         break
     elif choice == "3":
-        mode = 3
-        print("\n🛠️ Iniciando Modo Test con URLs de prueba...")
-        urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
-        break
-    elif choice == "4":
         print("👋 ¡Espero que haya habido suerte!")
         sys.exit()
     else:
         print("❌ Opción inválida. Inténtalo de nuevo.")
 
 
-print("🕵‍ Generando user-agent aleatorio...")
-ua = UserAgent()
-random_user_agent = ua.random
-print(random_user_agent)
-
-print("🛰️ Generando proxies")
-PROXIES = fetch_new_proxies(PROXIES_NUMBER)
-
-# Detectar la versión de Chrome instalada
-chrome_version = get_chrome_version()
-
-# Inicializar WebDriver
-webdriver_start(mode)
-
 # Loop infinito para revisar cada página periódicamente
 try:
     while True:
         for url, config in urls_with_terms.items():
-            check_availability(url, config["terms"], config["method"], config.get("selector", ""))
+            check_availability(mode, url, config["terms"], config["method"], config.get("selector", ""))
 
-        print("\n🕵️‍♂️ Generando nuevo user-agent aleatorio...")
+        print("\n🕵 Generando nuevo user-agent aleatorio...")
         ua = UserAgent()
         random_user_agent = ua.random
         print(random_user_agent)
