@@ -1,35 +1,35 @@
 {
-    "https://www.asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5080+Series-GeForce+RTX+5090+Series": {
+    "https://asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5080+Series-GeForce+RTX+5090+Series": {
         "method": "brute",
         "terms": ["Añadir a la cesta"],
         "selector": "button.add-to-cart"
     },
-    "https://www.aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5080": {
+    "https://aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5080": {
         "method": "request",
         "terms": ["Carro"],
         "selector": "button.add-to-cart:not(.disabled)"
     },
-    "https://www.aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5090": {
+    "https://aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5090": {
         "method": "request",
         "terms": ["Carro"],
         "selector": "button.add-to-cart:not(.disabled)"
     },
-    "https://www.caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5080": {
+    "https://caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5080": {
         "method": "brute",
         "terms": ["Pocas unidades", "En stock"],
         "selector": "availability-product"
     },
-    "https://www.caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5090": {
+    "https://caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5090": {
         "method": "brute",
         "terms": ["Pocas unidades", "En stock"],
         "selector": "availability-product"
     },
-    "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5080": {
+    "https://coolmod.com/tarjetas-graficas/serie-rtx-5080": {
         "method": "request",
         "terms": ["Añadir"],
         "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
     },
-    "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5090": {
+    "https://coolmod.com/tarjetas-graficas/serie-rtx-5090": {
         "method": "request",
         "terms": ["Añadir"],
         "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
@@ -44,7 +44,7 @@
         "terms": ["Añadir al carrito"],
         "selector": "product-card"
     },
-    "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126519,126520.html": {
+    "https://ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126519,126520.html": {
         "method": "brute",
         "terms": ["DISPONIBLE"],
         "selector": "div.modal-stock-web"
@@ -54,82 +54,82 @@
         "terms": ["Comprar Ahora"],
         "selector": "div.product-details-grid-tile"
     },
-    "https://www.neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000/Modelo-GeForce+RTX+5080&order=product.position.asc&resultsPerPage=9999999": {
+    "https://neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000/Modelo-GeForce+RTX+5080&order=product.position.asc&resultsPerPage=9999999": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "div.product-description"
     },
-    "https://www.neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000/Modelo-GeForce+RTX+5090&order=product.position.asc&resultsPerPage=9999999": {
+    "https://neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000/Modelo-GeForce+RTX+5090&order=product.position.asc&resultsPerPage=9999999": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "div.product-description"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5080-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5080-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-prime-geforce-rtx-5080-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-asus-prime-geforce-rtx-5080-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-vanguard-soc-launch-edition-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-vanguard-soc-launch-edition-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-gaming-trio-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5080-gaming-trio-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-gaming-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-gaming-oc-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-windforce-oc-sff-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-gigabyte-geforce-rtx-5080-windforce-oc-sff-16gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-asus-tuf-gaming-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5090-suprim-soc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-msi-geforce-rtx-5090-suprim-soc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-asus-rog-astral-geforce-rtx-5090-oc-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-argb-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
+    "https://pccomponentes.com/tarjeta-grafica-pny-geforce-rtx-5090-argb-overclocked-triple-fan-32gb-gddr7-reflex-2-rtx-ai-dlss4": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
-    "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080": {
+    "https://redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080": {
         "method": "request",
         "terms": ["Comprar"],
         "selector": "div.product-add-cart"
     },
-    "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5090": {
+    "https://redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5090": {
         "method": "request",
         "terms": ["Comprar"],
         "selector": "div.product-add-cart"
@@ -144,12 +144,12 @@
         "terms": ["Añadir al carrito"],
         "selector": "div.ajax_block_product"
     },
-    "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5080": {
+    "https://xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5080": {
         "method": "brute",
         "terms": ["disponible"],
         "selector": "span.tvlowqty"
     },
-    "https://www.xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5090": {
+    "https://xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5090": {
         "method": "brute",
         "terms": ["disponible"],
         "selector": "span.tvlowqty"

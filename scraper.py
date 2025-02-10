@@ -32,7 +32,7 @@ TELEGRAM_TOKEN = ""
 TELEGRAM_CHAT_ID = ""
 
 # Rutas de los diccionarios
-TARGETS_FILE = "src/data/targets.json"
+TARGETS_FILE = "src/data/filtered_targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
@@ -338,7 +338,8 @@ def scrap_brute(url, selector=""):
             webdriver_restart()
             return None
         else:
-            print(f"⚠️ Error inesperado en {url}: {e}")
+            #print(f"⚠️ Error inesperado en {url}: {e}")
+            print(f"⚠️ Error inesperado en {url}")
             return None
 
 def scrap_with_requests(url, selector=""):
