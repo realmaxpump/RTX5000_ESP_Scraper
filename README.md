@@ -14,6 +14,7 @@ Just run, dependencies will be automatically installed. If any available product
     
     - Added request mode.
     - Code improvements and more vendors.
+    - Telegram bot support for notifications
     
 07/02/2024 - 1.4.2
     
