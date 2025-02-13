@@ -39,7 +39,7 @@ TEST_TARGETS_FILE = "src/data/test_targets.json"
 TIMEOUT_THRESHOLD = 5
 
 # Tiempo entre búsquedas
-WAIT_TIME = 1
+WAIT_TIME = 0
 
 # Proxies (free-proxy-list)
 PROXIES_NUMBER = 10
@@ -335,7 +335,7 @@ def scrap_brute(url, selector=""):
             return None
         else:
             #print(f"⚠️ Error inesperado en {url}: {e}")
-            print(f"⚠️ Error inesperado en {url}")
+            print(f"⚠️ Error inesperado en {url}. Prueba a aumentar TIMEOUT_THRESHOLD a más de 5")
             return None
 
 def scrap_with_requests(url, selector=""):
