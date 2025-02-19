@@ -1,8 +1,23 @@
 {
-    "https://asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5080+Series-GeForce+RTX+5090+Series": {
+    "https://www.asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5070+Ti+Series": {
         "method": "brute",
         "terms": ["Añadir a la cesta"],
         "selector": "button.add-to-cart"
+    },
+    "https://www.asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5080+Series": {
+        "method": "brute",
+        "terms": ["Añadir a la cesta"],
+        "selector": "button.add-to-cart"
+    },
+    "https://www.asusbymacman.es/tarjetas-graficas-nvidia-48?q=Series-GeForce+RTX+5090+Series": {
+        "method": "brute",
+        "terms": ["Añadir a la cesta"],
+        "selector": "button.add-to-cart"
+    },
+    "https://aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5070": {
+        "method": "brute",
+        "terms": ["Carro"],
+        "selector": "button.add-to-cart:not(.disabled)"
     },
     "https://aussar.es/tarjetas-graficas/?q=Modelo+GPU-Geforce+RTX+5080": {
         "method": "brute",
@@ -14,6 +29,16 @@
         "terms": ["Carro"],
         "selector": "button.add-to-cart:not(.disabled)"
     },
+    "https://caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5070": {
+        "method": "brute",
+        "terms": ["Pocas unidades", "En stock"],
+        "selector": "availability-product"
+    },
+    "https://www.caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5070-ti": {
+        "method": "brute",
+        "terms": ["Pocas unidades", "En stock"],
+        "selector": "availability-product"
+    },
     "https://caseking.es/componentes/tarjetas-graficas/nvidia/geforce-rtx-5080": {
         "method": "brute",
         "terms": ["Pocas unidades", "En stock"],
@@ -23,6 +48,11 @@
         "method": "brute",
         "terms": ["Pocas unidades", "En stock"],
         "selector": "availability-product"
+    },
+    "https://www.coolmod.com/tarjetas-graficas/serie-rtx-5070-ti/serie-rtx-5070-20250117100334/#list-category-products": {
+        "method": "brute",
+        "terms": ["Añadir"],
+        "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
     },
     "https://coolmod.com/tarjetas-graficas/serie-rtx-5080": {
         "method": "brute",
@@ -34,6 +64,11 @@
         "terms": ["Añadir"],
         "selector": "#list-category-product article.product-card button.add-to-cart:not(.hidden)"
     },
+    "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5070-ti": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"],
+        "selector": "product-card"
+    },
     "https://es-store.msi.com/collections/tarjetas-graficas-nvidia-rtx-5080?sort_by=manual&filter.p.m.custom.grafica=GeForce+RTX+5080": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
@@ -44,7 +79,22 @@
         "terms": ["Añadir al carrito"],
         "selector": "product-card"
     },
-    "https://ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126519,126520.html": {
+    "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126521.html": {
+        "method": "brute",
+        "terms": ["DISPONIBLE"],
+        "selector": "div.modal-stock-web"
+    },
+    "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126567.html": {
+        "method": "brute",
+        "terms": ["DISPONIBLE"],
+        "selector": "div.modal-stock-web"
+    },
+    "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126519.html": {
+        "method": "brute",
+        "terms": ["DISPONIBLE"],
+        "selector": "div.modal-stock-web"
+    },
+    "https://www.ldlc.com/es-es/informatica/piezas-de-informatica/tarjeta-grafica/c4684/+fv121-126520.html": {
         "method": "brute",
         "terms": ["DISPONIBLE"],
         "selector": "div.modal-stock-web"
@@ -53,6 +103,16 @@
         "method": "brute",
         "terms": ["Comprar Ahora"],
         "selector": "div.product-details-grid-tile"
+    },
+    "https://www.neobyte.es/tarjetas-graficas-nvidia-149?q=Modelo-GeForce+RTX+5070-GeForce&order=product.position.asc&resultsPerPage=9999999": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"],
+        "selector": "div.product-description"
+    },
+    "https://www.neobyte.es/tarjetas-graficas-nvidia-149?order=product.position.asc&resultsPerPage=9999999&q=Modelo-GeForce+RTX+5070+Ti": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"],
+        "selector": "div.product-description"
     },
     "https://neobyte.es/tarjetas-graficas-nvidia-149?q=Grafica-NVIDIA+RTX+Serie+5000/Modelo-GeForce+RTX+5080&order=product.position.asc&resultsPerPage=9999999": {
         "method": "brute",
@@ -124,6 +184,11 @@
         "terms": ["Añadir al carrito"],
         "selector": "#pdp-section-buybox"
     },
+    "https://www.redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5070+Ti": {
+        "method": "brute",
+        "terms": ["Comprar"],
+        "selector": "div.product-add-cart"
+    },
     "https://redcomputer.es/tarjetas-graficas-nvidia-rtx-10000020?order=product.position.asc&resultsPerPage=9999999&q=Modelo+Gr%C3%A1fica-Nvidia+Geforce+RTX+5080": {
         "method": "brute",
         "terms": ["Comprar"],
@@ -134,6 +199,16 @@
         "terms": ["Comprar"],
         "selector": "div.product-add-cart"
     },
+    "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5070": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"],
+        "selector": "div.ajax_block_product"
+    },
+    "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5070+Ti": {
+        "method": "brute",
+        "terms": ["Añadir al carrito"],
+        "selector": "div.ajax_block_product"
+    },
     "https://wipoid.com/componentes/tarjetas-graficas/tarjetas-graficas-nvidia/?q=NVIDIA+Series-RTX+5080": {
         "method": "brute",
         "terms": ["Añadir al carrito"],
@@ -143,6 +218,11 @@
         "method": "brute",
         "terms": ["Añadir al carrito"],
         "selector": "div.ajax_block_product"
+    },
+    "https://xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5070": {
+        "method": "brute",
+        "terms": ["disponible"],
+        "selector": "span.tvlowqty"
     },
     "https://xtremmedia.com/tarjetas-gr%C3%A1ficas?chip-gr%C3%A1fico=gf-rtx5080": {
         "method": "brute",
