@@ -56,7 +56,7 @@
     },
     "https://xtremmedia.com/tarjetas-gr%C3%A1ficas": {
         "method": "brute",
-        "terms": ["disponible"],
+        "terms": ["Disponible"],
         "selector": "span.tvlowqty"
     }
 }

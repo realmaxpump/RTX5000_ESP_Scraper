@@ -36,7 +36,7 @@ TARGETS_FILE = "src/data/targets.json"
 TEST_TARGETS_FILE = "src/data/test_targets.json"
 
 # Tiempo máximo de espera por página
-TIMEOUT_THRESHOLD = 5
+TIMEOUT_THRESHOLD = 7
 
 # Tiempo entre búsquedas
 WAIT_TIME = 0
