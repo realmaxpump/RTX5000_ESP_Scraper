@@ -1,0 +1,589 @@
+#!/usr/bin/env python
+import sys
+import subprocess
+import platform
+import socket
+import requests
+import random
+import time
+from datetime import datetime
+import json
+import re
+from concurrent.futures import ThreadPoolExecutor
+import threading  # Para usar locks
+
+# Lock global para la creación del WebDriver
+driver_lock = threading.Lock()
+
+# Diccionario de paquetes requeridos
+required_packages = {
+    "setuptools": "setuptools",
+    "selenium": "selenium",
+    "undetected_chromedriver": "undetected_chromedriver",
+    "fake-useragent": "fake_useragent",
+    "beautifulsoup4": "bs4",
+    "brotli": "brotli",
+    "winsound": "winsound",
+}
+
+#####################################
+########### Configuración ###########
+#####################################
+ALARM_FREQ = 2000  # Frecuencia de la alarma en Hz
+ALARM_DURATION = 800  # Duración en ms
+
+# Telegram
+USE_TELEGRAM = True
+TELEGRAM_TOKEN = "7814194803:AAHVavK7juVR8V0GGFPNtN_MptNuVEdBiFQ"
+TELEGRAM_CHAT_ID = "-1002416290622"
+
+# Rutas de los diccionarios
+TARGETS_FILE = "src/data/targets.json"
+TEST_TARGETS_FILE = "src/data/test_targets.json"
+
+# Timeout y tiempo entre búsquedas
+TIMEOUT_THRESHOLD = 8  # Puedes ajustar a 8 segundos (o más) según pruebas
+WAIT_TIME = 2
+
+# Proxies (lista de ejemplo)
+PROXIES_NUMBER = 10
+PROXIES = []
+
+# Colores para la terminal
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+RESET = '\033[0m'
+
+# Cooldown para notificaciones (5 minutos)
+last_notification = {}  # key: URL, value: timestamp
+
+#####################################
+########### Funciones ###############
+#####################################
+
+def log_product_found(url):
+    """Guarda en archivo la URL encontrada junto con la hora local."""
+    with open("series_50_disponibles.txt", "a") as file:
+        file.write(f"URL: {url} - Found at {current_time()}\n")
+
+def current_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def print_separator(width=100):
+    print('\n' + '='.center(width, '=') + '\n')
+
+def install_packages(packages):
+    """Instala paquetes si no están disponibles."""
+    try:
+        import setuptools
+    except ImportError:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "setuptools"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+    for package, module in packages.items():
+        try:
+            __import__(module)
+        except ImportError:
+            subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", package],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            try:
+                __import__(module)
+            except ImportError:
+                print(f"❌ No se pudo instalar correctamente {package}. Reintente manualmente")
+                exit(1)
+
+def show_menu_mode():
+    print_separator()
+    print("🎯 Selecciona una opción:")
+    print("1️🔹 Empezar Búsqueda en modo híbrido (Estable. Brute + request scrap)")
+    print("2️🔹 Empezar Búsqueda en modo request (Experimental. Más rápido)")
+    print("3️🔹 Salir")
+    print(f"\n\tScript desarrollado por: {RED}RealMaxPump {RESET}")
+    print("\thttps://github.com/realmaxpump")
+    print_separator()
+
+def show_menu_mode_hybrid():
+    print_separator()
+    print("🎯 Selecciona una opción:")
+    print("1️🔹 Empezar Búsqueda en sub-modo silencioso (recomendado)")
+    print("2️🔹 Empezar Búsqueda en sub-modo gráfico")
+    print("3️🔹 Modo Test de URLs")
+    print("4️🔹 Salir")
+    print_separator()
+
+def show_menu_mode_request():
+    print_separator()
+    print("🎯 Selecciona una opción:")
+    print("1️🔹 Empezar Búsqueda")
+    print("2️🔹 Modo Test de URLs")
+    print("3️🔹 Salir")
+    print_separator()
+
+def load_urls_from_file(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"❌ Error al cargar el archivo {file_path}: {e}")
+        return {}
+
+def get_chrome_version():
+    try:
+        system = platform.system().lower()
+        if system == "windows":
+            result = subprocess.run(
+                ["reg", "query", "HKEY_CURRENT_USER\\Software\\Google\\Chrome\\BLBeacon", "/v", "version"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if result.returncode == 0:
+                version = result.stdout.strip().split()[-1]
+                return int(version.split(".")[0])
+            else:
+                return None
+        elif system == "linux":
+            result = subprocess.run(
+                ["google-chrome", "--version"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if result.returncode == 0:
+                version = re.search(r"\d+\.\d+\.\d+", result.stdout.strip())
+                if version:
+                    return int(version.group().split(".")[0])
+            else:
+                return None
+        elif system == "darwin":
+            result = subprocess.run(
+                ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--version"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if result.returncode == 0:
+                version = re.search(r"\d+\.\d+\.\d+", result.stdout.strip())
+                if version:
+                    return int(version.group().split(".")[0])
+            else:
+                return None
+        else:
+            return None
+    except Exception:
+        return None
+
+def fetch_new_proxies(max_number_of_proxies):
+    def get_soup(url):
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(requests.get(url).text, "html.parser")
+    soup = get_soup("https://free-proxy-list.net/")
+    trs = soup.find_all("tr")
+    def validate_ip(addr):
+        try:
+            socket.inet_aton(addr)
+            return True
+        except socket.error:
+            return False
+    def validate_port(port):
+        return str(port).isdigit() and 1000 < int(port) < 99999
+    proxies = []
+    for tr in trs:
+        tds = tr.find_all("td")
+        if tds:
+            ip = tds[0].text
+            if not validate_ip(ip):
+                continue
+            port = tds[1].text
+            if not validate_port(port):
+                continue
+            if "elite" not in tds[4].text:
+                continue
+            if "minutes" in tds[-1].text:
+                continue
+            protocol = "https" if "yes" in tds[6].text.strip() else "http"
+            proxy = f"{protocol}://{ip}:{port}"
+            proxies.append(proxy)
+            if len(proxies) > max_number_of_proxies:
+                break
+    return proxies
+
+#####################################
+### NUEVA FUNCIÓN: Crear WebDriver ###
+#####################################
+def create_driver(mode):
+    """
+    Crea y retorna una nueva instancia de WebDriver para cada hilo.
+    Se utiliza en modo brute (Selenium) de forma paralela.
+    Se usa un lock para evitar conflictos en el acceso al ejecutable.
+    """
+    try:
+        # Se minimizan los prints aquí para evitar sobrecargar la salida
+        import undetected_chromedriver as uc
+        from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+        chrome_options = uc.ChromeOptions()
+        chrome_options.add_argument("--log-level=3")
+        chrome_options.add_argument(f"--user-agent={random_user_agent}")
+        if mode == 1:
+            chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--enable-unsafe-webgl")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument(f"--window-size={random.randint(1024, 1920)},{random.randint(768, 1080)}")
+        prefs = {"profile.managed_default_content_settings.images": 2}
+        chrome_options.add_experimental_option("prefs", prefs)
+        chrome_options.add_argument("--disable-extensions")
+        caps = DesiredCapabilities.CHROME
+        caps["pageLoadStrategy"] = "eager"
+        local_chrome_version = get_chrome_version()
+        driver = None
+        with driver_lock:
+            if local_chrome_version:
+                driver = uc.Chrome(version_main=local_chrome_version, desired_capabilities=caps, options=chrome_options)
+            else:
+                driver = uc.Chrome(desired_capabilities=caps, options=chrome_options)
+        driver.set_page_load_timeout(TIMEOUT_THRESHOLD)
+        driver.set_script_timeout(TIMEOUT_THRESHOLD)
+        return driver
+    except Exception as e:
+        return None
+
+#####################################
+########### Scrap Functions #########
+#####################################
+def scrap_brute(url, selector="", driver=None):
+    """
+    Utiliza Selenium para cargar la página y extraer su contenido.
+    Se recibe la instancia de WebDriver de cada hilo.
+    """
+    try:
+        driver.get(url)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support import expected_conditions as EC
+        WebDriverWait(driver, TIMEOUT_THRESHOLD).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "main, body"))
+        )
+        page_content = driver.page_source
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(page_content, "html.parser")
+        if selector:
+            if isinstance(selector, str):
+                selector = [selector]
+            selected_elements = []
+            for sel in selector:
+                sel = sel.strip()
+                elements = soup.select(sel)
+                if elements:
+                    selected_elements.extend(str(el) for el in elements)
+            if selected_elements:
+                return BeautifulSoup("\n".join(selected_elements), "html.parser")
+        return soup
+    except Exception as e:
+        err = str(e).lower()
+        if ("invalid session id" in err or "read timeout" in err):
+            return None
+        else:
+            print(f"⚠️ Error inesperado en {url} en thread: {e}")
+            return None
+
+def scrap_with_requests(url, selector=""):
+    try:
+        REQUEST_HEADERS = {
+            "User-Agent": random_user_agent,
+            "Accept-Language": "en-US,en;q=0.8,es;q=0.6",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Connection": "keep-alive",
+            "Referer": "https://www.google.com/",
+            "DNT": "1",
+            "Upgrade-Insecure-Requests": "1",
+        }
+        response = requests.get(url, headers=REQUEST_HEADERS, timeout=TIMEOUT_THRESHOLD)
+        content_encoding = response.headers.get("Content-Encoding", "").lower()
+        raw_content = response.content
+        if raw_content[:2] == b'<!':
+            html = raw_content.decode("utf-8", errors="ignore")
+        elif content_encoding == "gzip":
+            try:
+                import gzip
+                html = gzip.decompress(raw_content).decode("utf-8", errors="ignore")
+            except OSError:
+                html = raw_content.decode("utf-8", errors="ignore")
+        elif content_encoding == "br":
+            try:
+                import brotli
+                html = brotli.decompress(raw_content).decode("utf-8", errors="ignore")
+            except brotli.error:
+                html = raw_content.decode("utf-8", errors="ignore")
+        else:
+            html = raw_content.decode("utf-8", errors="ignore")
+        if "<html" not in html:
+            print(f"❌ La respuesta de {url} no contiene HTML válido.")
+            return None
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html, "html.parser")
+        if "You can email the site owner" in html:
+            print(f"⚠️ Cloudflare detectado en {url}. Pasando a siguiente entrada...")
+            return None
+        if selector:
+            if isinstance(selector, str):
+                selector = [selector]
+            selected_elements = []
+            for sel in selector:
+                sel = sel.strip()
+                elements = soup.select(sel)
+                if elements:
+                    selected_elements.extend(str(el) for el in elements)
+            if selected_elements:
+                return BeautifulSoup("\n".join(selected_elements), "html.parser")
+        return soup
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ No se pudo acceder a {url}: {e}")
+        return None
+
+#####################################
+##### Función de Verificación  ######
+#####################################
+def check_availability(mode, url, search_terms, method, selector=""):
+    global last_notification
+    try:
+        if mode in [1, 2, 3]:
+            if method == "request":
+                soup = scrap_with_requests(url, selector)
+            elif method == "brute":
+                max_retries = 2
+                retries = 0
+                soup = None
+                while retries <= max_retries and soup is None:
+                    local_driver = create_driver(mode)
+                    if local_driver is None:
+                        break
+                    soup = scrap_brute(url, selector, driver=local_driver)
+                    local_driver.quit()
+                    if soup is None:
+                        retries += 1
+                        if retries == max_retries:
+                            break
+                        print(f"🔄 Reintentando {url} ({retries}/{max_retries})...")
+            else:
+                return
+        elif mode in [4, 5]:
+            soup = scrap_with_requests(url, selector)
+        else:
+            return
+        
+        if soup:
+            visible_text = ' '.join(soup.stripped_strings)
+            found = any(re.search(rf"\b{re.escape(term)}\b", visible_text, re.IGNORECASE) for term in search_terms)
+            if found:
+                print("\n" + "=" * 100)
+                print(f"💸 {GREEN}STOCK DISPONIBLE{RESET} en: {url}")
+                print("=" * 100)
+                log_product_found(url)
+                try:
+                    import winsound
+                    winsound.Beep(ALARM_FREQ, ALARM_DURATION)
+                except Exception:
+                    pass
+                if USE_TELEGRAM:
+                    current_ts = time.time()
+                    if url not in last_notification or (current_ts - last_notification[url] >= 300):
+                        try:
+                            send_message_telegram(f"💸💸💸 STOCK DISPONIBLE  💸💸💸\n\n{url}")
+                            print("✅ Notificado en Telegram")
+                            last_notification[url] = current_ts
+                        except Exception:
+                            pass
+                print("=" * 100)
+            else:
+                print(f"❌ STOCK NO disponible en: {url}")
+        else:
+            print(f"❌ STOCK NO disponible en: {url}")
+    except Exception as e:
+        print(f"⚠️ Error en {url}: {e}")
+
+def send_message_telegram(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    params = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "message_thread_id": 81,
+        "text": message
+    }
+    requests.get(url, params=params)
+
+#####################################
+### Funciones antiguas de Selenium ###
+#####################################
+def webdriver_start(mode):
+    """
+    Función antigua para iniciar WebDriver.
+    En este código en paralelo no se utiliza ya que cada hilo crea su propia instancia.
+    """
+    global driver
+    try:
+        import undetected_chromedriver as uc
+        from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+        chrome_options = uc.ChromeOptions()
+        chrome_options.add_argument("--log-level=3")
+        chrome_options.add_argument(f"--user-agent={random_user_agent}")
+        if mode == 1:
+            chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--enable-unsafe-webgl")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument(f"--window-size={random.randint(1024, 1920)},{random.randint(768, 1080)}")
+        prefs = {"profile.managed_default_content_settings.images": 2}
+        chrome_options.add_experimental_option("prefs", prefs)
+        chrome_options.add_argument("--disable-extensions")
+        caps = DesiredCapabilities.CHROME
+        caps["pageLoadStrategy"] = "eager"
+        chrome_version = get_chrome_version()
+        if chrome_version:
+            driver = uc.Chrome(version_main=chrome_version, desired_capabilities=caps, options=chrome_options)
+        else:
+            driver = uc.Chrome(desired_capabilities=caps, options=chrome_options)
+        driver.set_page_load_timeout(TIMEOUT_THRESHOLD)
+        driver.set_script_timeout(TIMEOUT_THRESHOLD)
+    except Exception as e:
+        sys.exit(1)
+
+def webdriver_restart():
+    global driver
+    try:
+        driver.quit()
+        time.sleep(3)
+    except Exception:
+        exit()
+    webdriver_start(mode)
+
+#####################################
+########### Ejecución ###############
+#####################################
+
+install_packages(required_packages)
+
+from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from fake_useragent import UserAgent
+import undetected_chromedriver as uc
+import brotli
+import winsound
+
+# Información inicial que se mantiene
+print("✅ Todas las dependencias han sido instaladas e importadas correctamente")
+if ALARM_FREQ and ALARM_DURATION:
+    print("✅ 🚨Alarma🚨 preparada")
+else:
+    print("❌ No se ha podido inicializar la alarma")
+if USE_TELEGRAM:
+    if not TELEGRAM_CHAT_ID:
+        print("❌ 🤖Bot🤖 de Telegram no configurado")
+    else:
+        print(f"✅ 🤖Bot🤖 de Telegram iniciado correctamente. Chat ID encontrado: {TELEGRAM_CHAT_ID}")
+        print("✅ Conectado al hilo 'avisos' (Thread ID: 81)")
+else:
+    print("❌ 🤖Bot🤖 de Telegram deshabilitado")
+response = requests.get("https://api64.ipify.org?format=json")
+ip_public = response.json()["ip"]
+print(f"🌍 Tu IP pública es: {ip_public}")
+print("🕵‍ Generando user-agent aleatorio...")
+ua = UserAgent()
+random_user_agent = ua.random
+print(random_user_agent)
+print("🛰️ Generando proxies...")
+PROXIES = fetch_new_proxies(PROXIES_NUMBER)
+
+#####################################
+### Menú y Selección de Modo ########
+#####################################
+while True:
+    show_menu_mode()
+    choice = input("🔹 Opción (1/2/3): ").strip()
+    mode = None
+    if choice == "1":
+        show_menu_mode_hybrid()
+        choice = input("🔹 Opción (1/2/3/4): ").strip()
+        if choice == "1":
+            mode = 1
+            print("\n🛠️ Iniciando búsqueda de disponibilidad en modo híbrido silencioso (brute con Selenium en paralelo)...")
+            urls_with_terms = load_urls_from_file(TARGETS_FILE)
+            break
+        elif choice == "2":
+            mode = 2
+            print("\n🛠️ Iniciando búsqueda de disponibilidad en modo híbrido gráfico (brute con Selenium en paralelo)...")
+            urls_with_terms = load_urls_from_file(TARGETS_FILE)
+            break
+        elif choice == "3":
+            mode = 3
+            print("\n🛠️ Iniciando Modo Test con URLs de prueba en modo híbrido (brute con Selenium en paralelo)...")
+            urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
+            break
+        elif choice == "4":
+            print("👋 ¡Espero que haya habido suerte!")
+            sys.exit()
+        else:
+            print("❌ Opción inválida. Inténtalo de nuevo.")
+    elif choice == "2":
+        show_menu_mode_request()
+        choice = input("🔹 Opción (1/2/3): ").strip()
+        if choice == "1":
+            mode = 4
+            print("\n🛠️ Iniciando búsqueda de disponibilidad por request...")
+            urls_with_terms = load_urls_from_file(TARGETS_FILE)
+            break
+        elif choice == "2":
+            mode = 5
+            print("\n🛠️ Iniciando Modo Test con URLs de prueba por modo request...")
+            urls_with_terms = load_urls_from_file(TEST_TARGETS_FILE)
+            break
+        elif choice == "3":
+            print("👋 ¡Espero que haya habido suerte!")
+            sys.exit()
+        else:
+            print("❌ Opción inválida. Inténtalo de nuevo.")
+    elif choice == "3":
+        print("👋 ¡Espero que haya habido suerte!")
+        sys.exit()
+    else:
+        print("❌ Opción inválida. Inténtalo de nuevo.")
+
+#####################################
+########### Bucle Principal #########
+#####################################
+try:
+    while True:
+        print("\n🔄 Reiniciando búsqueda de stock...")
+        if mode in [1, 2, 3]:
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                futures = []
+                for url, config in urls_with_terms.items():
+                    futures.append(
+                        executor.submit(
+                            check_availability,
+                            mode,
+                            url,
+                            config["terms"],
+                            config["method"],
+                            config.get("selector", "")
+                        )
+                    )
+                for future in futures:
+                    try:
+                        future.result()
+                    except Exception:
+                        pass
+        else:
+            for url, config in urls_with_terms.items():
+                check_availability(mode, url, config["terms"], config["method"], config.get("selector", ""))
+        print("\n🕵 Generando nuevo user-agent aleatorio...\n")
+        ua = UserAgent()
+        random_user_agent = ua.random
+        print(random_user_agent)
+        print("\n🔄 Esperando antes de la próxima revisión... 🔄\n")
+        time.sleep(WAIT_TIME)
+except KeyboardInterrupt:
+    print("\n❌ Búsqueda detenida manualmente.")
+    sys.exit()
